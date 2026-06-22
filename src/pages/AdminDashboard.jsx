@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal as TerminalIcon, RefreshCw, Plus, Database, Layers, CheckCircle2, AlertCircle, Key, Link as LinkIcon, Clipboard, ArrowUpRight, LogOut, Check, ShoppingBag, Edit, Trash2, Wand2, Image as ImageIcon, PlusCircle, Sparkles, X, ArrowUp, ArrowDown } from 'lucide-react';
+import { Terminal as TerminalIcon, RefreshCw, Plus, Database, Layers, CheckCircle2, AlertCircle, Key, Link as LinkIcon, Clipboard, ArrowUpRight, LogOut, Check, ShoppingBag, Edit, Trash2, Wand2, Image as ImageIcon, PlusCircle, Sparkles, X, ArrowUp, ArrowDown, Lock } from 'lucide-react';
 import { getAccessToken, getCJProducts, createCJOrder, getCachedToken, disconnectCJ, getLogs, queryCJProduct, addImportedProduct, getImportedProducts, getStorefrontProducts, updateStorefrontProduct, deleteStorefrontProduct, resetStorefrontProducts, bulkAiRewriteProducts, moveStorefrontProduct } from '../services/cjApi';
 import { getSales, fireSaleNotification } from '../services/saleService';
 import { generateProductCopy } from '../services/geminiService';
+import { isAdminAuthenticated, loginAdmin, logoutAdmin } from '../utils/auth';
 
 const INITIAL_SKUS = [
   {
@@ -19,8 +20,83 @@ const INITIAL_SKUS = [
 ];
 
 export default function AdminDashboard() {
+  const [isAuthenticated, setIsAuthenticated] = useState(isAdminAuthenticated());
+  const [pinInput, setPinInput] = useState('');
+  const [authError, setAuthError] = useState('');
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (loginAdmin(pinInput)) {
+      setIsAuthenticated(true);
+      setAuthError('');
+    } else {
+      setAuthError('Invalid Admin PIN');
+      setPinInput('');
+    }
+  };
+
+  const handleLogout = () => {
+    logoutAdmin();
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center bg-white px-6">
+        <div className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-led-red via-led-purple to-led-red"></div>
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+              <Lock className="w-8 h-8 text-obsidian" />
+            </div>
+            <h2 className="text-2xl font-black text-obsidian tracking-tight">Admin Portal</h2>
+            <p className="text-xs text-ash-gray font-mono mt-2 uppercase tracking-widest">Restricted Access</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-xs font-bold text-obsidian uppercase tracking-wider mb-2">Access PIN</label>
+              <input
+                type="password"
+                value={pinInput}
+                onChange={(e) => setPinInput(e.target.value)}
+                placeholder="••••"
+                className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-center text-2xl font-mono tracking-widest focus:outline-none transition-all ${
+                  authError ? 'border-red-400 focus:ring-1 focus:ring-red-400' : 'border-slate-200 focus:border-led-purple focus:ring-1 focus:ring-led-purple'
+                }`}
+                autoFocus
+              />
+              {authError && <p className="text-xs text-red-500 font-bold mt-2 text-center flex items-center justify-center gap-1"><AlertCircle className="w-3 h-3" />{authError}</p>}
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3.5 bg-obsidian text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-slate-800 transition-colors shadow-lg hover:shadow-xl"
+            >
+              Unlock Dashboard
+            </button>
+          </form>
+          
+          <div className="mt-8 text-center border-t border-slate-100 pt-6">
+            <p className="text-[10px] text-slate-400 font-mono">TheraPulse Control Center v2.1.0</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <DashboardContent onLogout={handleLogout} />;
+}
+
+function DashboardContent({ onLogout }) {
   const [skus, setSkus] = useState(() => {
-    const imported = getImportedProducts();
+    let imported = [];
+    try {
+      const raw = getImportedProducts();
+      imported = Array.isArray(raw) ? raw : [];
+    } catch(e) {
+      console.error(e);
+    }
     const mappedImported = imported.map(p => ({
       id: p.id,
       name: p.name,
@@ -100,7 +176,14 @@ export default function AdminDashboard() {
     }
     loadCjCatalog(); // Always fetch storefront database on mount!
     updateLogs();
-    setSalesRecords(getSales());
+    
+    // Safely load sales records
+    try {
+      const sales = getSales();
+      setSalesRecords(Array.isArray(sales) ? sales : []);
+    } catch(e) {
+      setSalesRecords([]);
+    }
   }, []);
 
   const handleCjConnect = async () => {
@@ -516,9 +599,14 @@ export default function AdminDashboard() {
             Supply Chain Scaffolding
           </div>
           <h1 className="text-3xl md:text-4xl font-black text-obsidian tracking-tight">Dropshipping Admin Panel</h1>
-          <p className="text-xs md:text-sm text-ash-gray font-normal max-w-xl">
-            Configure CJ Dropshipping & AutoDS API mapping, manage live catalog queries, and create customer sale links.
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-xs md:text-sm text-ash-gray font-normal max-w-xl">
+              Configure CJ Dropshipping API mapping, manage live catalog queries, and create customer sale links.
+            </p>
+            <button onClick={onLogout} className="text-xs text-red-500 font-bold hover:underline flex items-center gap-1">
+              <LogOut className="w-3 h-3" /> Lock
+            </button>
+          </div>
         </div>
 
         {/* Dynamic Sync Controls */}
