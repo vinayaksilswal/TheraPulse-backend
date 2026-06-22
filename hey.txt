@@ -1,0 +1,16 @@
+
+
+# TheraPulse: AI-Powered Clinical E-Commerce Solution
+
+TheraPulse is a fully automated, end-to-end e-commerce platform designed for the health, beauty, and clinical skincare niche. Built to handle everything from product sourcing to customer payment, it is engineered specifically to convert paid ad traffic into hands-off sales.
+
+### Core Features & Automated Workflows:
+
+*   **Magic Bulk Import (CJ Dropshipping):** Store owners can paste massive lists of SPU codes directly from CJ Dropshipping. The system queries the live CJ APIs, fetching real-time wholesale costs, inventory counts, and high-resolution variant image sets in seconds.
+*   **AI-Powered Copywriting Engine:** No manual data entry required. The platform intercepts raw, poorly-translated supplier data (like messy titles and broken HTML descriptions) and runs it through a Gemini AI integration. The AI dynamically generates premium, highly-converting sales copy, extracts key highlights, and creates clinical-sounding titles—instantly giving the store a premium brand aesthetic. 
+*   **Dynamic Profit Margins:** The backend features a self-healing pricing algorithm. The moment a product is imported, the system automatically buffers a $15 shipping cost and applies a rigid 2.0x retail markup (and a 3.0x strikethrough discount price), guaranteeing every item is instantly profitable and ready for ad campaigns.
+*   **Ad-Ready Conversion Architecture:** With its beautiful, minimalist UI, fast-loading React architecture, and dynamic product variants that update seamlessly, the storefront is optimized specifically to handle and convert cold traffic from TikTok and Facebook ads.
+*   **Secure PayPal Express Checkout:** The platform features a streamlined, high-converting checkout drawer. It enforces strict validation rules—requiring customers to input their full shipping address and phone number *before* the secure PayPal gateway unlocks, ensuring 100% compliance and reliable fulfillment data.
+*   **Hands-Off Fulfillment:** Once a PayPal payment is secured, the order details are mapped directly to CJ Dropshipping's fulfillment API, triggering an automated drop-shipping cycle directly to the customer's doorstep. 
+
+*** 
