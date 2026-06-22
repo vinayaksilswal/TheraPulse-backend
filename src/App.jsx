@@ -56,6 +56,12 @@ class ErrorBoundary extends React.Component {
               <p className="text-sm text-gray-500 mt-2">
                 An unexpected error occurred. Please refresh the page to continue shopping.
               </p>
+              {this.state.error && (
+                <div className="mt-4 p-4 bg-gray-100 rounded-xl text-left overflow-auto max-h-[300px] text-xs font-mono text-red-600">
+                  <p className="font-bold">{this.state.error.toString()}</p>
+                  <pre className="mt-2">{this.state.error.stack}</pre>
+                </div>
+              )}
             </div>
             <button
               onClick={() => window.location.reload()}

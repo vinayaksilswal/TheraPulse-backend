@@ -99,12 +99,13 @@ function DashboardContent({ onLogout }) {
     }
     const mappedImported = imported.map(p => ({
       id: p.id,
-      name: p.name,
-      sku: p.sku,
-      supplierSku: p.supplierSku,
-      cost: p.cost,
-      price: p.price,
-      inventory: p.inventory,
+      id: p.id || `tp-${Math.random()}`,
+      name: p.name || 'Unknown Product',
+      sku: p.sku || 'N/A',
+      supplierSku: p.supplierSku || 'N/A',
+      cost: Number(p.cost) || 0,
+      price: Number(p.price) || 0,
+      inventory: Number(p.inventory) || 0,
       provider: 'CJ Dropshipping',
       status: 'Mapped'
     }));
@@ -226,17 +227,15 @@ function DashboardContent({ onLogout }) {
         
         // Sync skus state mapping
         const mappedSkus = res.list.map(p => ({
-          id: p.pid,
-          name: p.productName,
-          sku: p.productSku,
+          id: p.pid || `tp-${Math.random()}`,
+          name: p.productName || 'Unknown Product',
+          sku: p.productSku || 'N/A',
           supplierSku: p.productSku || 'CJ-IMPORT-SPU',
-          cost: p.costPrice || p.cost || 0,
-          price: p.sellPrice || p.price || 0,
-          inventory: p.inventory || 0,
+          cost: Number(p.costPrice || p.cost) || 0,
+          price: Number(p.sellPrice || p.price) || 0,
+          inventory: Number(p.inventory) || 0,
           provider: 'CJ Dropshipping',
           status: 'Mapped'
-
-
         }));
         setSkus(mappedSkus);
       }
@@ -698,20 +697,20 @@ function DashboardContent({ onLogout }) {
                       </tr>
                     )}
                     {salesRecords.map((sale) => (
-                      <tr key={sale.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="py-4 pr-2 text-slate-500 font-mono">{new Date(sale.timestamp).toLocaleDateString()}</td>
-                        <td className="py-4 px-2 font-mono text-obsidian font-bold">{sale.id}</td>
-                        <td className="py-4 px-2 text-slate-700">{sale.customer.fullName}</td>
-                        <td className="py-4 px-2 font-mono text-emerald-600 font-bold">${sale.total.toFixed(2)}</td>
+                      <tr key={sale?.id || Math.random()} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="py-4 pr-2 text-slate-500 font-mono">{sale?.timestamp ? new Date(sale.timestamp).toLocaleDateString() : 'Unknown'}</td>
+                        <td className="py-4 px-2 font-mono text-obsidian font-bold">{sale?.id || 'N/A'}</td>
+                        <td className="py-4 px-2 text-slate-700">{sale?.customer?.fullName || 'Guest'}</td>
+                        <td className="py-4 px-2 font-mono text-emerald-600 font-bold">${(Number(sale?.total) || 0).toFixed(2)}</td>
                         <td className="py-4 px-2 text-center">
                            <span className="bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full font-mono">
-                             {sale.items.length}
+                             {Array.isArray(sale?.items) ? sale.items.length : 0}
                            </span>
                         </td>
-                        <td className="py-4 px-2 text-center font-mono text-slate-500">{sale.cjOrderId || 'N/A'}</td>
+                        <td className="py-4 px-2 text-center font-mono text-slate-500">{sale?.cjOrderId || 'N/A'}</td>
                         <td className="py-4 pl-2 text-center">
                           <span className="bg-amber-50 text-amber-600 border border-amber-200 font-bold px-2 py-0.5 rounded-full font-mono text-[10px]">
-                            {sale.status}
+                            {sale?.status || 'Pending'}
                           </span>
                         </td>
                       </tr>
@@ -740,25 +739,28 @@ function DashboardContent({ onLogout }) {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {skus.map((item) => {
-                      const margin = ((item.price - item.cost) / item.price) * 100;
+                      const cost = Number(item?.cost) || 0;
+                      const price = Number(item?.price) || 0;
+                      const margin = price > 0 ? ((price - cost) / price) * 100 : 0;
+                      
                       return (
-                        <tr key={item.sku} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="py-4 pr-2 font-bold text-obsidian">{item.name}</td>
-                          <td className="py-4 px-2 font-mono text-slate-500">{item.sku}</td>
-                          <td className="py-4 px-2 font-mono text-slate-400">{item.supplierSku}</td>
-                          <td className="py-4 px-2 text-right font-mono text-slate-500">${item.cost.toFixed(2)}</td>
-                          <td className="py-4 px-2 text-right font-mono text-obsidian font-bold">${item.price.toFixed(2)}</td>
+                        <tr key={item?.sku || Math.random()} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-4 pr-2 font-bold text-obsidian">{item?.name || 'Unknown'}</td>
+                          <td className="py-4 px-2 font-mono text-slate-500">{item?.sku || 'N/A'}</td>
+                          <td className="py-4 px-2 font-mono text-slate-400">{item?.supplierSku || 'N/A'}</td>
+                          <td className="py-4 px-2 text-right font-mono text-slate-500">${cost.toFixed(2)}</td>
+                          <td className="py-4 px-2 text-right font-mono text-obsidian font-bold">${price.toFixed(2)}</td>
                           <td className="py-4 px-2 text-center">
                             <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold px-2 py-0.5 rounded-full font-mono">
                               {margin.toFixed(0)}%
                             </span>
                           </td>
-                          <td className="py-4 px-2 text-right font-mono text-obsidian">{item.inventory.toLocaleString()}</td>
-                          <td className="py-4 px-2 text-center font-bold text-ash-gray">{item.provider}</td>
+                          <td className="py-4 px-2 text-right font-mono text-obsidian">{(Number(item?.inventory) || 0).toLocaleString()}</td>
+                          <td className="py-4 px-2 text-center font-bold text-ash-gray">{item?.provider || 'Unknown'}</td>
                           <td className="py-4 pl-2 text-center">
                             <span className="flex items-center justify-center gap-1 text-[10px] text-emerald-600 font-bold font-mono">
                               <CheckCircle2 className="h-3 w-3" />
-                              {item.status}
+                              {item?.status || 'Active'}
                             </span>
                           </td>
                         </tr>
@@ -958,12 +960,12 @@ function DashboardContent({ onLogout }) {
 
             {/* Config details */}
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 text-xs space-y-2 text-left">
-              <div className="flex justify-between items-center">
-                <span className="text-slate-400">Environment Key:</span>
-                <span className="font-mono text-obsidian font-bold">
-                  {process.env.CJ_DROP ? `Detected (Ends: ...${process.env.CJ_DROP.slice(-6)})` : 'Missing'}
-                </span>
-              </div>
+                <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">ENV API Key</span>
+                  <span className="text-xs font-mono text-slate-400">
+                    {import.meta.env.VITE_CJ_API_KEY ? `Detected (Ends: ...${import.meta.env.VITE_CJ_API_KEY.slice(-6)})` : 'Missing'}
+                  </span>
+                </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">API Connection:</span>
                 <span className={`inline-flex items-center gap-1 font-bold ${cjToken ? 'text-emerald-600' : 'text-red-500'}`}>
