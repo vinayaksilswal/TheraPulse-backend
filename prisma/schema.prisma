@@ -1,0 +1,68 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+model Product {
+  id              String      @id @default(cuid())
+  pid             String      @unique // CJ PID
+  productName     String
+  productSku      String
+  sellPrice       Float
+  originalPrice   Float
+  costPrice       Float
+  inventory       Int
+  categoryName    String
+  productImage    String
+  productImages   String[]
+  description     String
+  highlights      String[]
+  tagline         String?
+  listCount       Int         @default(0)
+  manualSortOrder Int?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  orderItems      OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique // TP-Date.now()
+  customerName    String
+  customerEmail   String?
+  shippingAddress String
+  shippingCity    String
+  shippingState   String
+  shippingZip     String
+  shippingCountry String
+  shippingPhone   String?
+  totalAmount     Float
+  status          String      @default("Pending Dispatch")
+  cjOrderId       String?
+  paypalOrderId   String?
+  auditMargin     Float?
+  auditCost       Float?
+  auditRevenue    Float?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String? // Changed to optional in case product is deleted
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name      String  // Store name historically
+  quantity  Int
+  price     Float
+  costPrice Float
+  vid       String? // Variant ID used in CJ
+}
