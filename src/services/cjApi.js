@@ -310,8 +310,19 @@ export const saveStorefrontProducts = (products) => {
 /**
  * Update a storefront product
  */
-export const updateStorefrontProduct = (updatedProduct) => {
+export const updateStorefrontProduct = async (updatedProduct) => {
   const sanitized = sanitizeProduct(updatedProduct);
+  
+  try {
+    await fetch(`/api/products/${sanitized.pid}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sanitized),
+    });
+  } catch (error) {
+    logger.error('Failed to update product on server', { error: error.message });
+  }
+
   const products = getStorefrontProducts();
   const index = products.findIndex((p) => p.pid === sanitized.pid);
   if (index !== -1) {
@@ -423,7 +434,15 @@ export const bulkAiRewriteProducts = async (onProgress) => {
 /**
  * Delete a product from the storefront catalog
  */
-export const deleteStorefrontProduct = (pid) => {
+export const deleteStorefrontProduct = async (pid) => {
+  try {
+    await fetch(`/api/products/${pid}`, {
+      method: 'DELETE',
+    });
+  } catch (error) {
+    logger.error('Failed to delete product from server', { error: error.message });
+  }
+
   const products = getStorefrontProducts();
   const filtered = products.filter((p) => p.pid !== pid);
   saveStorefrontProducts(filtered);
@@ -500,6 +519,20 @@ export const moveStorefrontProduct = async (pid, direction) => {
   });
 
   localStorage.setItem(STOREFRONT_PRODUCTS_KEY, JSON.stringify(list));
+
+  try {
+    const updates = list.map(p => 
+      fetch(`/api/products/${p.pid}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ manualSortOrder: p.manualSortOrder }),
+      })
+    );
+    await Promise.all(updates);
+  } catch (error) {
+    logger.error('Failed to sync product order to server', { error: error.message });
+  }
+
   return true;
 };
 
@@ -597,6 +630,16 @@ export const addImportedProduct = async (product) => {
   // Add to storefront database
   const storefrontFiltered = currentStorefront.filter((item) => item.pid !== formattedProduct.pid);
   saveStorefrontProducts([...storefrontFiltered, formattedProduct]);
+
+  try {
+    await fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formattedProduct),
+    });
+  } catch (error) {
+    logger.error('Failed to save imported product to server', { error: error.message });
+  }
 
   // Keep legacy imported products in sync
   const currentLegacy = getImportedProducts();

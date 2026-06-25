@@ -388,7 +388,7 @@ function DashboardContent({ onLogout }) {
     }));
   };
 
-  const handleEditFormSubmit = (e) => {
+  const handleEditFormSubmit = async (e) => {
     e.preventDefault();
     const updated = {
       pid: editForm.pid,
@@ -406,14 +406,14 @@ function DashboardContent({ onLogout }) {
       productImages: editForm.productImages
     };
 
-    updateStorefrontProduct(updated);
+    await updateStorefrontProduct(updated);
     setEditingProduct(null);
     loadCjCatalog();
   };
 
-  const handleDeleteClick = (pid, name) => {
+  const handleDeleteClick = async (pid, name) => {
     if (window.confirm(`Are you sure you want to remove "${name}" from the storefront?`)) {
-      deleteStorefrontProduct(pid);
+      await deleteStorefrontProduct(pid);
       loadCjCatalog();
     }
   };
