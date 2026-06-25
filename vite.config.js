@@ -7,31 +7,15 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      'import.meta.env.VITE_CJ_API_KEY': JSON.stringify(env.CJ_API_KEY || env.VITE_CJ_API_KEY || ''),
-      'import.meta.env.VITE_GEMINI_KEY': JSON.stringify(env.GEMINI_API_KEY || env.VITE_GEMINI_KEY || ''),
       'import.meta.env.VITE_PAYPAL_CLIENT_ID': JSON.stringify(env.PAYPAL_CLIENT_ID || env.VITE_PAYPAL_CLIENT_ID || ''),
       'import.meta.env.VITE_ADMIN_PIN': JSON.stringify(env.ADMIN_PIN || env.VITE_ADMIN_PIN || ''),
-      // SECURITY: Only expose VITE_-prefixed env vars to the client bundle.
-      // CJ API key is proxied server-side and should NOT be in client code.
-      // VITE_PAYPAL_CLIENT_ID and VITE_GEMINI_KEY are intentionally client-side
-      // (PayPal requires it; Gemini is proxied but needs the key for the proxy path).
     },
     server: {
       proxy: {
         '/api': {
           target: 'http://localhost:5000',
           changeOrigin: true
-        },
-        '/api-cj': {
-          target: 'https://developers.cjdropshipping.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api-cj/, ''),
-        },
-        '/api-gemini': {
-          target: 'https://generativelanguage.googleapis.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api-gemini/, ''),
-        },
+        }
       },
     },
     build: {

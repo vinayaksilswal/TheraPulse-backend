@@ -33,8 +33,6 @@ import {
 
 // ─── Configuration ──────────────────────────────────────────────────
 
-const API_KEY = import.meta.env.VITE_CJ_API_KEY || import.meta.env.CJ_drop || '';
-
 const logger = createLogger('CJApi');
 
 // Rate limiter: 1 request per second with burst capacity of 2
@@ -589,184 +587,28 @@ export const queryCJProduct = async (pid) => {
     }
   }
 
-  let activeToken = getCachedToken();
-  if (!activeToken) {
-    const auth = await getAccessToken();
-    if (!auth.success) return { success: false, error: 'Authentication failed' };
-    activeToken = getCachedToken();
-  }
-
-  let resolvedPid = pid;
-
-  // Resolve SPU codes to numeric PIDs
-  if (typeof pid === 'string' && pid.toUpperCase().startsWith('CJ')) {
-    logger.info(`Input "${pid}" detected as SPU. Resolving to numeric PID...`);
-    try {
-      await cjRateLimiter.waitForToken();
-      const varRes = await fetchWithRetry(
-        `https://developers.cjdropshipping.com/api2.0/v1/product/variant/query?productSku=${pid}`,
-        {
-          method: 'GET',
-          headers: { 'CJ-Access-Token': activeToken, 'Content-Type': 'application/json' },
-        },
-        { service: 'cj', operation: 'resolveSPU-variant' }
-      );
-      if (varRes.ok) {
-        const varData = await varRes.json();
-        if (varData.code === 200 && varData.data?.length > 0) {
-          resolvedPid = varData.data[0].pid;
-          logger.info(`SPU "${pid}" → PID "${resolvedPid}" via variant query.`);
-        }
-      }
-
-      // Fallback: listV2 keyword search
-      if (resolvedPid === pid) {
-        await cjRateLimiter.waitForToken();
-        const searchRes = await fetchWithRetry(
-          `https://developers.cjdropshipping.com/api2.0/v1/product/listV2?page=1&size=5&keyWord=${pid}`,
-          {
-            method: 'GET',
-            headers: { 'CJ-Access-Token': activeToken, 'Content-Type': 'application/json' },
-          },
-          { service: 'cj', operation: 'resolveSPU-search' }
-        );
-        if (searchRes.ok) {
-          const searchData = await searchRes.json();
-          if (searchData.code === 200 && searchData.data?.content?.[0]) {
-            const list = searchData.data.content[0].productList || [];
-            if (list.length > 0) {
-              resolvedPid = list[0].id || list[0].pid;
-              logger.info(`SPU "${pid}" → PID "${resolvedPid}" via listV2 keyword search.`);
-            }
-          }
-        }
-      }
-
-      if (resolvedPid === pid) {
-        throw new Error(`Could not resolve SPU "${pid}" to a valid CJ product ID.`);
-      }
-    } catch (err) {
-      logger.error(`SPU resolution failed for "${pid}"`, { error: err.message });
-      return { success: false, error: err.message };
-    }
-  }
-
-  logger.info(`Querying product details for PID: ${resolvedPid}`);
-
   try {
-    await cjRateLimiter.waitForToken();
-    const response = await fetchWithRetry(
-      `https://developers.cjdropshipping.com/api2.0/v1/product/query?pid=${resolvedPid}`,
-      {
-        method: 'GET',
-        headers: { 'CJ-Access-Token': activeToken, 'Content-Type': 'application/json' },
-      },
-      { service: 'cj', operation: 'queryProduct' }
-    );
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const result = await response.json();
-    if (result.code === 200 && result.data) {
-      const data = result.data;
-      const rawName =
-        data.productNameEn ||
-        data.nameEn ||
-        (Array.isArray(data.productName) ? data.productName.join(' ') : data.productName) ||
-        '';
-      const productName = rawName.replace(/CJ Dropshipping|CJ/gi, 'TheraPulse').trim();
-
-      logger.info(`Retrieved product "${productName}" from live CJ API.`);
-
-      const cleanDesc = data.description
-        ? containsHtml(data.description)
-          ? stripHtml(data.description)
-          : data.description
-        : '';
-
-      // Cent-safe markup calculation
-      const wholesaleCost = parseFloat(data.sellPrice || data.productPriceMin || 12.0);
-      const retailPrice = applyRetailMarkup(wholesaleCost);
-      const strikethroughPrice = getStrikethroughPrice(wholesaleCost);
-
-      // AI Copywriter
-      let aiTitle = productName;
-      let aiDesc = cleanDesc || 'Premium clinical technology designed for maximum skin restoration.';
-      let aiHighlights = [
-        'Clinically tested formula',
-        'Visible results in 4-6 weeks',
-        'Dermatologist recommended',
-        'Free express shipping',
-      ];
-      let aiTagline = 'Transform your skincare routine.';
-
-      try {
-        const aiCopy = await generateProductCopy(productName, cleanDesc, resolvedPid, false);
-        if (aiCopy && aiCopy.title) {
-          aiTitle = aiCopy.title;
-          aiDesc = aiCopy.description;
-          aiHighlights = aiCopy.highlights || aiHighlights;
-          aiTagline = aiCopy.tagline || aiTagline;
-        }
-      } catch (e) {
-        logger.warn('AI copy generation failed during product query', { error: e.message });
-      }
-
-      const product = sanitizeProduct({
-        ...data,
-        pid: data.pid || resolvedPid,
-        productName: aiTitle,
-        description: aiDesc,
-        highlights: aiHighlights,
-        tagline: aiTagline,
-        sellPrice: retailPrice,
-        originalPrice: strikethroughPrice,
-        costPrice: wholesaleCost,
-        productPriceMin: wholesaleCost,
-        productPriceMax: wholesaleCost,
-        productImage:
-          data.bigImage ||
-          (Array.isArray(data.productImage) ? data.productImage[0] : data.productImage) ||
-          '',
-        productImages: data.productImageSet || [data.bigImage || '/mask.png'],
-        productSku: data.productSku || data.sku || '',
-      });
-
+    const res = await fetch(`/api/admin/cj/product/${pid}`);
+    const data = await res.json();
+    
+    if (data.success && data.product) {
       // Auto-save to storefront
-      if (storeRes.success && !storeRes.list.some((item) => item.pid === product.pid)) {
+      if (storeRes.success && !storeRes.list.some((item) => item.pid === data.product.pid)) {
         try {
           await fetch('/api/products', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(product),
+            body: JSON.stringify(data.product),
           });
-          logger.info(`Auto-imported "${product.productName}" to storefront database.`);
+          logger.info(`Auto-imported "${data.product.productName}" to storefront database.`);
         } catch (e) {
           logger.error('Failed auto-import', { error: e.message });
         }
       }
-
-      return { success: true, product, mode: 'Live' };
-    } else {
-      throw new Error(result.message || 'Product details not found');
+      return data;
     }
+    return { success: false, error: data.error || 'Failed to query product' };
   } catch (err) {
-    logger.warn(`Live query failed: "${err.message}". Searching local cache...`);
-
-    const cached = localStorage.getItem('cj_product_cache');
-    if (cached) {
-      try {
-        const list = JSON.parse(cached);
-        const found = list.find((p) => p.pid === resolvedPid || p.productSku === resolvedPid);
-        if (found) {
-          return { success: true, product: found, mode: 'Cached' };
-        }
-      } catch {
-        // Corrupted cache
-      }
-    }
     return { success: false, error: err.message };
   }
 };
@@ -777,91 +619,10 @@ export const queryCJProduct = async (pid) => {
  * Get product variants with cent-safe pricing
  */
 export const getProductVariants = async (pid) => {
-  // Mock product: return standard variants
-  if (pid === '1798542129166426112') {
-    const baseVariants = [
-      { vid: 'mask-standard', pid: '1798542129166426112', variantKey: 'Standard', variantNameEn: 'TheraPulse Clinical LED Mask (Standard)', sellPrice: 139.99 },
-      { vid: 'mask-premium', pid: '1798542129166426112', variantKey: 'Premium Bundle', variantNameEn: 'TheraPulse Clinical LED Mask + Travel Case', sellPrice: 169.99 },
-    ];
-
-    // Try live CJ variants
-    try {
-      const token = getCachedToken();
-      const activeToken = token || (await getAccessToken()).accessToken;
-      if (activeToken) {
-        await cjRateLimiter.waitForToken();
-        const response = await fetchWithRetry(
-          'https://developers.cjdropshipping.com/api2.0/v1/product/variant/query?pid=1798542129166426112',
-          {
-            method: 'GET',
-            headers: { 'CJ-Access-Token': activeToken, 'Content-Type': 'application/json' },
-          },
-          { service: 'cj', operation: 'getMaskVariants' }
-        );
-        if (response.ok) {
-          const result = await response.json();
-          if (result.code === 200 && result.data?.length > 0) {
-            const cjVariants = result.data.map((v, index) => {
-              const rawPrice = parseFloat(v.sellPrice || v.variantSellPrice || v.variantPrice);
-              return {
-                ...v,
-                pid: '1798542129166426112',
-                variantNameEn: `TheraPulse Clinical LED Mask - Set ${index + 1}`,
-                sellPrice: isNaN(rawPrice) || rawPrice <= 0 ? 139.99 : applyRetailMarkup(rawPrice),
-              };
-            });
-            return { success: true, variants: [...baseVariants, ...cjVariants] };
-          }
-        }
-      }
-    } catch (err) {
-      logger.debug('Error fetching CJ mask variants, using fallbacks', { error: err.message });
-    }
-
-    // Fallback variants
-    const fallbackCjVariants = [
-      { vid: 'cj-variant-set1', pid: '1798542129166426112', variantKey: 'Set', variantNameEn: 'Clinical LED Mask — Complete Rejuvenation Set', sellPrice: 139.99 },
-      { vid: 'cj-variant-set3', pid: '1798542129166426112', variantKey: 'Set3', variantNameEn: 'Clinical LED Mask — Advanced Therapy Set', sellPrice: 159.99 },
-      { vid: 'cj-variant-set4', pid: '1798542129166426112', variantKey: 'Set4', variantNameEn: 'Clinical LED Mask — Premium Recovery Set', sellPrice: 179.99 },
-      { vid: 'cj-variant-set5', pid: '1798542129166426112', variantKey: 'Set5', variantNameEn: 'Clinical LED Mask — Ultimate Clinical Set', sellPrice: 199.99 },
-    ];
-    return { success: true, variants: [...baseVariants, ...fallbackCjVariants] };
-  }
-
-  // Non-mock product: fetch from CJ
-  let activeToken = getCachedToken();
-  if (!activeToken) {
-    const auth = await getAccessToken();
-    if (!auth.success) return { success: false, error: 'Authentication failed' };
-    activeToken = getCachedToken();
-  }
-
   try {
-    await cjRateLimiter.waitForToken();
-    const response = await fetchWithRetry(
-      `https://developers.cjdropshipping.com/api2.0/v1/product/variant/query?pid=${pid}`,
-      {
-        method: 'GET',
-        headers: { 'CJ-Access-Token': activeToken, 'Content-Type': 'application/json' },
-      },
-      { service: 'cj', operation: 'getVariants' }
-    );
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const result = await response.json();
-    if (result.code === 200 && result.data) {
-      const mapped = result.data.map((v) => {
-        const rawPrice = parseFloat(v.sellPrice || v.variantSellPrice || v.variantPrice);
-        return {
-          ...v,
-          sellPrice: isNaN(rawPrice) || rawPrice <= 0 ? 29.99 : applyRetailMarkup(rawPrice),
-        };
-      });
-      return { success: true, variants: mapped };
-    } else {
-      throw new Error(result.message || 'Variants not found');
-    }
+    const res = await fetch(`/api/admin/cj/variants/${pid}`);
+    const data = await res.json();
+    return data;
   } catch (err) {
     return { success: false, error: err.message };
   }

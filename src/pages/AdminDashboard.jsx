@@ -960,9 +960,9 @@ function DashboardContent({ onLogout }) {
             {/* Config details */}
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/60 text-xs space-y-2 text-left">
                 <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">ENV API Key</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Backend API Key</span>
                   <span className="text-xs font-mono text-slate-400">
-                    {import.meta.env.VITE_CJ_API_KEY ? `Detected (Ends: ...${import.meta.env.VITE_CJ_API_KEY.slice(-6)})` : 'Missing'}
+                    Securely Managed
                   </span>
                 </div>
               <div className="flex justify-between items-center">
