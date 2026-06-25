@@ -90,3 +90,29 @@ export const extractImagesFromHtml = (html) => {
   }
 };
 
+export const generateLocalFallbackCopy = (productName, rawDescription) => ({
+  title: productName,
+  description: rawDescription || 'Premium clinical technology.',
+  highlights: ['Clinically tested', 'Premium quality', 'Dermatologist recommended', 'Fast shipping'],
+  tagline: 'Transform your routine.',
+  fromCache: true,
+  error: 'Using local fallback'
+});
+
+export const getCachedImages = (id) => {
+  try {
+    const cached = localStorage.getItem(`images_${id}`);
+    if (cached) return JSON.parse(cached);
+  } catch (e) {
+    // ignore
+  }
+  return null;
+};
+
+export const setCachedImages = (id, images) => {
+  try {
+    localStorage.setItem(`images_${id}`, JSON.stringify(images));
+  } catch (e) {
+    // ignore
+  }
+};
