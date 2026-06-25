@@ -314,43 +314,18 @@ export const updateStorefrontProduct = async (updatedProduct) => {
   const sanitized = sanitizeProduct(updatedProduct);
   
   try {
-    await fetch(`/api/products/${sanitized.pid}`, {
+    const res = await fetch(`/api/products/${sanitized.pid}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(sanitized),
     });
-  } catch (error) {
-    logger.error('Failed to update product on server', { error: error.message });
-  }
-
-  const products = getStorefrontProducts();
-  const index = products.findIndex((p) => p.pid === sanitized.pid);
-  if (index !== -1) {
-    products[index] = { ...products[index], ...sanitized };
-    saveStorefrontProducts(products);
-
-    // Sync legacy IMPORTED_KEY
-    try {
-      const legacyImported = getImportedProducts();
-      const legacyIndex = legacyImported.findIndex((lp) => lp.pid === sanitized.pid);
-      if (legacyIndex !== -1) {
-        legacyImported[legacyIndex] = {
-          ...legacyImported[legacyIndex],
-          name: sanitized.productName,
-          price: sanitized.sellPrice,
-          originalPrice: sanitized.originalPrice,
-          description: sanitized.description,
-        };
-        localStorage.setItem(IMPORTED_KEY, JSON.stringify(legacyImported));
-      }
-    } catch (e) {
-      logger.warn('Failed to sync updated legacy product', { error: e.message });
-    }
-
+    if (!res.ok) throw new Error('Failed to update product');
     logger.info(`Product "${sanitized.productName}" updated in storefront.`);
     return true;
+  } catch (error) {
+    logger.error('Failed to update product on server', { error: error.message });
+    return false;
   }
-  return false;
 };
 
 /**
@@ -359,11 +334,11 @@ export const updateStorefrontProduct = async (updatedProduct) => {
  * @returns {Promise<{success: boolean, count: number}>}
  */
 export const bulkAiRewriteProducts = async (onProgress) => {
-  const products = getStorefrontProducts();
+  const res = await getCJProducts();
+  if (!res.success) throw new Error('Could not fetch catalog for bulk rewrite');
+  const products = res.list;
   const total = products.length;
   if (total === 0) return { success: true, count: 0 };
-
-  const updatedProducts = [];
 
   for (let i = 0; i < total; i++) {
     const p = products[i];
@@ -382,7 +357,7 @@ export const bulkAiRewriteProducts = async (onProgress) => {
 
       const aiCopy = await generateProductCopy(p.productName, cleanDesc, p.pid, true);
       if (aiCopy && !aiCopy.error) {
-        updatedProducts.push({
+        const updated = {
           ...p,
           productName: aiCopy.title || p.productName,
           description: aiCopy.description || p.description,
@@ -391,41 +366,17 @@ export const bulkAiRewriteProducts = async (onProgress) => {
               ? aiCopy.highlights.slice(0, 4)
               : p.highlights,
           tagline: aiCopy.tagline || p.tagline,
-        });
+        };
+        await updateStorefrontProduct(updated);
         logger.info(`Product "${p.productName}" AI copy optimized.`);
       } else {
-        updatedProducts.push(p);
         logger.warn(`Product "${p.productName}" copy generation skipped.`, {
           reason: aiCopy?.error || 'API response issue',
         });
       }
     } catch (e) {
-      updatedProducts.push(p);
       logger.error(`AI bulk copy failed for "${p.productName}"`, { error: e.message });
     }
-  }
-
-  saveStorefrontProducts(updatedProducts);
-
-  // Sync legacy IMPORTED_KEY
-  try {
-    const legacyImported = getImportedProducts();
-    const updatedLegacy = legacyImported.map((lp) => {
-      const match = updatedProducts.find((up) => up.pid === lp.pid);
-      if (match) {
-        return {
-          ...lp,
-          name: match.productName,
-          price: match.sellPrice,
-          originalPrice: match.originalPrice,
-          description: match.description,
-        };
-      }
-      return lp;
-    });
-    localStorage.setItem(IMPORTED_KEY, JSON.stringify(updatedLegacy));
-  } catch (e) {
-    logger.warn('Failed to sync bulk updated legacy products', { error: e.message });
   }
 
   return { success: true, count: total };
@@ -436,22 +387,16 @@ export const bulkAiRewriteProducts = async (onProgress) => {
  */
 export const deleteStorefrontProduct = async (pid) => {
   try {
-    await fetch(`/api/products/${pid}`, {
+    const res = await fetch(`/api/products/${pid}`, {
       method: 'DELETE',
     });
+    if (!res.ok) throw new Error('Failed to delete product');
+    logger.info(`Product ID "${pid}" removed from storefront.`);
+    return true;
   } catch (error) {
     logger.error('Failed to delete product from server', { error: error.message });
+    return false;
   }
-
-  const products = getStorefrontProducts();
-  const filtered = products.filter((p) => p.pid !== pid);
-  saveStorefrontProducts(filtered);
-  logger.info(`Product ID "${pid}" removed from storefront.`);
-
-  const legacyImported = getImportedProducts();
-  const legacyFiltered = legacyImported.filter((p) => p.pid !== pid);
-  localStorage.setItem(IMPORTED_KEY, JSON.stringify(legacyFiltered));
-  return true;
 };
 
 /**
@@ -467,34 +412,17 @@ export const resetStorefrontProducts = () => {
 export const getCJProducts = async (page = 1, size = 50) => {
   try {
     const res = await fetch('/api/products');
+    if (!res.ok) throw new Error('API server returned ' + res.status);
     const data = await res.json();
     if (data.success) {
       logger.info(`Loaded catalog from server: ${data.list.length} products total.`);
-      // Sync local cache for fast loading
-      localStorage.setItem(STOREFRONT_PRODUCTS_KEY, JSON.stringify(data.list));
       return { success: true, list: data.list, mode: 'Live' };
     }
+    throw new Error(data.error || 'Unknown API error');
   } catch (error) {
-    logger.warn('Failed to fetch from server, falling back to local storage', { error: error.message });
+    logger.error('Failed to fetch from server', { error: error.message });
+    return { success: false, error: error.message, list: [] };
   }
-
-  const list = getStorefrontProducts();
-
-  // Sort: Flagship first, then manual order, then by listing count
-  list.sort((a, b) => {
-    if (a.pid === '1798542129166426112') return -1;
-    if (b.pid === '1798542129166426112') return 1;
-
-    if (typeof a.manualSortOrder === 'number' && typeof b.manualSortOrder === 'number') {
-      return a.manualSortOrder - b.manualSortOrder;
-    }
-
-    const countA = parseInt(a.listCount || 0, 10);
-    const countB = parseInt(b.listCount || 0, 10);
-    return countB - countA;
-  });
-
-  return { success: true, list, mode: 'Local' };
 };
 
 /**
@@ -517,8 +445,6 @@ export const moveStorefrontProduct = async (pid, direction) => {
   list.forEach((p, i) => {
     p.manualSortOrder = i;
   });
-
-  localStorage.setItem(STOREFRONT_PRODUCTS_KEY, JSON.stringify(list));
 
   try {
     const updates = list.map(p => 
@@ -627,52 +553,22 @@ export const addImportedProduct = async (product) => {
     tagline: aiTagline,
   });
 
-  // Add to storefront database
-  const storefrontFiltered = currentStorefront.filter((item) => item.pid !== formattedProduct.pid);
-  saveStorefrontProducts([...storefrontFiltered, formattedProduct]);
-
   try {
-    await fetch('/api/products', {
+    const res = await fetch('/api/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formattedProduct),
     });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || 'Failed to save product to server');
+    }
+    logger.info(`Product "${formattedProduct.productName}" imported to storefront.`);
+    return formattedProduct;
   } catch (error) {
     logger.error('Failed to save imported product to server', { error: error.message });
+    throw error;
   }
-
-  // Keep legacy imported products in sync
-  const currentLegacy = getImportedProducts();
-  const legacyFormatted = {
-    id: product.pid,
-    pid: product.pid,
-    name: aiTitle,
-    price: retailPrice,
-    originalPrice: strikethroughPrice,
-    costPrice: wholesaleCost,
-    category: product.categoryName?.toLowerCase().includes('device') ? 'devices' : 'consumables',
-    image: product.productImage || '/mask.png',
-    rating: 4.8,
-    reviewsCount: 154,
-    tag: product.categoryName || 'Imported SPU',
-    badgeColor: 'bg-purple-50 text-led-purple border-purple-100/60',
-    description: aiDesc,
-    sku: `TP-CJ-${product.productSku || 'IMPORT'}`,
-    supplierSku: product.productSku || 'CJ-IMPORT-SPU',
-    cost: wholesaleCost,
-    inventory: parseInt(product.inventory || 100, 10),
-    provider: 'CJ Dropshipping',
-    status: 'Mapped',
-  };
-  const legacyFiltered = currentLegacy.filter((item) => item.pid !== legacyFormatted.pid);
-  localStorage.setItem(IMPORTED_KEY, JSON.stringify([...legacyFiltered, legacyFormatted]));
-
-  logger.info(`Product "${formattedProduct.productName}" imported to storefront.`, {
-    pid: product.pid,
-    retailPrice,
-    wholesaleCost,
-  });
-  return formattedProduct;
 };
 
 // ─── Product Query ──────────────────────────────────────────────────
@@ -685,10 +581,12 @@ export const queryCJProduct = async (pid) => {
   if (!pid) return { success: false, error: 'PID required' };
 
   // Return local storefront product if found
-  const storefrontProducts = getStorefrontProducts();
-  const storeFound = storefrontProducts.find((p) => p.pid === pid || p.productSku === pid);
-  if (storeFound) {
-    return { success: true, product: storeFound, mode: 'LocalStore' };
+  const storeRes = await getCJProducts();
+  if (storeRes.success) {
+    const storeFound = storeRes.list.find((p) => p.pid === pid || p.productSku === pid);
+    if (storeFound) {
+      return { success: true, product: storeFound, mode: 'Database' };
+    }
   }
 
   let activeToken = getCachedToken();
@@ -837,34 +735,17 @@ export const queryCJProduct = async (pid) => {
       });
 
       // Auto-save to storefront
-      const currentStorefront = getStorefrontProducts();
-      if (!currentStorefront.some((item) => item.pid === product.pid)) {
-        saveStorefrontProducts([...currentStorefront, product]);
-
-        const currentLegacy = getImportedProducts();
-        const legacyFormatted = {
-          id: product.pid,
-          pid: product.pid,
-          name: product.productName,
-          price: retailPrice,
-          originalPrice: strikethroughPrice,
-          costPrice: wholesaleCost,
-          category: product.categoryName?.toLowerCase().includes('device') ? 'devices' : 'consumables',
-          image: product.productImage,
-          rating: 4.8,
-          reviewsCount: 1240,
-          tag: product.categoryName || 'Imported SPU',
-          badgeColor: 'bg-purple-50 text-led-purple border-purple-100/60',
-          description: aiDesc,
-          sku: product.productSku || `TP-CJ-${product.pid}`,
-          supplierSku: product.productSku || 'CJ-IMPORT-SPU',
-          cost: wholesaleCost,
-          inventory: parseInt(product.inventory || 100, 10),
-          provider: 'CJ Dropshipping',
-          status: 'Mapped',
-        };
-        localStorage.setItem(IMPORTED_KEY, JSON.stringify([...currentLegacy, legacyFormatted]));
-        logger.info(`Auto-imported "${product.productName}" to storefront database.`);
+      if (storeRes.success && !storeRes.list.some((item) => item.pid === product.pid)) {
+        try {
+          await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(product),
+          });
+          logger.info(`Auto-imported "${product.productName}" to storefront database.`);
+        } catch (e) {
+          logger.error('Failed auto-import', { error: e.message });
+        }
       }
 
       return { success: true, product, mode: 'Live' };
