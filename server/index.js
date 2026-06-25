@@ -28,10 +28,12 @@ app.get('/api/health', (req, res) => {
 import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
 import paypalRouter from './routes/paypal.js';
+import warriorplusRouter from './routes/warriorplus.js';
 
 app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/paypal', paypalRouter);
+app.use('/api/warriorplus', warriorplusRouter);
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
