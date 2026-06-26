@@ -48,7 +48,7 @@ const createLogEntry = (level, service, message, context = {}) => ({
     ...context,
     correlationId: context.correlationId || generateCorrelationId(),
   },
-  environment: import.meta.env.MODE || 'development',
+  environment: (import.meta.env ? import.meta.env.MODE : (typeof process !== 'undefined' ? process.env.NODE_ENV : 'development')),
 });
 
 /**
@@ -199,7 +199,7 @@ export const setLogLevel = (level) => {
 export const exportLogs = () => {
   return JSON.stringify({
     exported: new Date().toISOString(),
-    environment: import.meta.env.MODE || 'development',
+    environment: (import.meta.env ? import.meta.env.MODE : (typeof process !== 'undefined' ? process.env.NODE_ENV : 'development')),
     bufferSize: logBuffer.length,
     entries: logBuffer,
     persisted: getPersistedLogs(),
