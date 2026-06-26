@@ -52,33 +52,34 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const product = req.body;
-    const existing = await prisma.product.findUnique({ where: { pid: product.pid } });
-    if (existing) {
-      return res.status(400).json({ success: false, error: 'Product already exists' });
-    }
-    const created = await prisma.product.create({
-      data: {
-        pid: product.pid,
-        productName: product.productName || '',
-        productSku: product.productSku || '',
-        sellPrice: product.sellPrice || 0,
-        originalPrice: product.originalPrice || 0,
-        costPrice: product.costPrice || 0,
-        inventory: product.inventory || 0,
-        categoryName: product.categoryName || '',
-        productImage: product.productImage || '',
-        productImages: product.productImages || [],
-        description: product.description || '',
-        highlights: product.highlights || [],
-        tagline: product.tagline || '',
-        listCount: product.listCount || 0,
-        manualSortOrder: product.manualSortOrder,
-      }
+    const productData = {
+      pid: product.pid,
+      productName: product.productName || '',
+      productSku: product.productSku || '',
+      sellPrice: product.sellPrice || 0,
+      originalPrice: product.originalPrice || 0,
+      costPrice: product.costPrice || 0,
+      inventory: product.inventory || 0,
+      categoryName: product.categoryName || '',
+      productImage: product.productImage || '',
+      productImages: product.productImages || [],
+      description: product.description || '',
+      highlights: product.highlights || [],
+      tagline: product.tagline || '',
+      listCount: product.listCount || 0,
+      manualSortOrder: product.manualSortOrder,
+    };
+
+    const savedProduct = await prisma.product.upsert({
+      where: { pid: product.pid },
+      update: productData,
+      create: productData,
     });
-    res.json({ success: true, product: created });
+    
+    res.json({ success: true, product: savedProduct });
   } catch (error) {
-    console.error('Error adding product:', error);
-    res.status(500).json({ success: false, error: 'Failed to add product' });
+    console.error('Error saving product:', error);
+    res.status(500).json({ success: false, error: 'Failed to save product' });
   }
 });
 

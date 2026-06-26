@@ -34,6 +34,7 @@ import {
 // ─── Configuration ──────────────────────────────────────────────────
 
 const logger = createLogger('CJApi');
+const API_KEY = import.meta.env.VITE_CJ_API_KEY || '';
 
 // Rate limiter: 1 request per second with burst capacity of 2
 const cjRateLimiter = new RateLimiter(1, 2);
