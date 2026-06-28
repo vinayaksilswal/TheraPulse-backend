@@ -91,6 +91,9 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('Error saving product:', error);
     res.status(500).json({ success: false, error: 'Failed to save product' });
+  }
+});
+
 // Update an existing product
 router.put('/:pid', async (req, res) => {
   try {
