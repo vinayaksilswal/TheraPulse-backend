@@ -280,21 +280,35 @@ export class RateLimiter {
     this.bucketSize = bucketSize;
     this.tokens = bucketSize;
     this.lastRefill = Date.now();
+    this.queue = [];
+    this.processing = false;
   }
 
   async waitForToken() {
-    this.refillTokens();
+    return new Promise((resolve) => {
+      this.queue.push(resolve);
+      this.processQueue();
+    });
+  }
 
-    if (this.tokens >= 1) {
-      this.tokens -= 1;
-      return;
+  async processQueue() {
+    if (this.processing) return;
+    this.processing = true;
+
+    while (this.queue.length > 0) {
+      this.refillTokens();
+
+      if (this.tokens >= 1) {
+        this.tokens -= 1;
+        const resolve = this.queue.shift();
+        resolve();
+      } else {
+        const waitMs = Math.ceil((1 - this.tokens) / this.tokensPerSecond * 1000);
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+      }
     }
 
-    // Wait until a token is available
-    const waitMs = Math.ceil((1 - this.tokens) / this.tokensPerSecond * 1000);
-    await new Promise((resolve) => setTimeout(resolve, waitMs));
-    this.refillTokens();
-    this.tokens -= 1;
+    this.processing = false;
   }
 
   refillTokens() {

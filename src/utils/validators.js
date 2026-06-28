@@ -293,12 +293,12 @@ export const sanitizeProduct = (product) => {
   const sanitized = { ...product };
   const stringFields = [
     'productName', 'description', 'categoryName', 'tagline',
-    'productSku', 'productImage',
+    'productSku', 'productImage', 'productVideo',
   ];
 
   stringFields.forEach((field) => {
     if (typeof sanitized[field] === 'string') {
-      sanitized[field] = sanitizeAndTruncate(sanitized[field], field === 'description' ? 2000 : 200);
+      sanitized[field] = sanitizeAndTruncate(sanitized[field], field === 'description' ? 2000 : 500);
     }
   });
 

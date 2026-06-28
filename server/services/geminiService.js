@@ -32,6 +32,35 @@ export const extractImagesFromHtml = (html) => {
   return [...new Set(urls)];
 };
 
+export const extractVideosFromHtml = (html) => {
+  if (!html || typeof html !== 'string') return [];
+  const urls = [];
+  
+  // Extract <video src="...">
+  const videoRegex = /<video[^>]+src=["'](http[^"']+)["']/gi;
+  let match;
+  while ((match = videoRegex.exec(html)) !== null) {
+    urls.push(match[1]);
+  }
+  
+  // Extract <source src="..."> inside videos
+  const sourceRegex = /<source[^>]+src=["'](http[^"']+)["']/gi;
+  while ((match = sourceRegex.exec(html)) !== null) {
+    urls.push(match[1]);
+  }
+
+  // Extract <iframe src="...">
+  const iframeRegex = /<iframe[^>]+src=["']([^"']+)["']/gi;
+  while ((match = iframeRegex.exec(html)) !== null) {
+    const src = match[1];
+    if (src.includes('youtube.com') || src.includes('youtu.be') || src.includes('vimeo.com') || src.endsWith('.mp4')) {
+      urls.push(src);
+    }
+  }
+
+  return [...new Set(urls)];
+};
+
 export const containsHtml = (text) => {
   if (!text || typeof text !== 'string') return false;
   return /<[a-z][\s\S]*>/i.test(text) || /&lt;[a-z][\s\S]*&gt;/i.test(text);

@@ -546,7 +546,7 @@ export const addImportedProduct = async (product) => {
       product.categoryName ||
       (product.productSku?.toLowerCase().includes('device') ? 'LED Devices' : 'Serums & Patches'),
     productImage: product.productImage || '/mask.png',
-    productImages: [product.productImage || '/mask.png'],
+    productImages: product.productImages || [product.productImage || '/mask.png'],
     description: aiDesc,
     highlights: aiHighlights,
     tagline: aiTagline,

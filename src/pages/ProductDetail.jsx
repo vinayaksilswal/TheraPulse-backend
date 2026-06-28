@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, ShoppingCart, Truck, Plus, Minus, Shield, Zap, ChevronLeft, ChevronRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { queryCJProduct, getProductVariants, getCachedToken, getAccessToken } from '../services/cjApi';
-import { extractImagesFromHtml, containsHtml, stripHtml, getCachedImages, setCachedImages } from '../services/geminiService';
+import { extractImagesFromHtml, extractVideosFromHtml, containsHtml, stripHtml } from '../services/geminiService';
 import { getAverageRating } from '../services/reviewService';
 import { calculateSavePercent } from '../utils/pricing';
 import { createLogger } from '../utils/logger';
@@ -36,42 +36,12 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
         if (res.success && res.product) {
           const productData = res.product;
 
-          // PARALLEL: Fetch images, variants, and ratings simultaneously
-          const [imageResult, variantResult] = await Promise.allSettled([
-            // Fetch fresh images from CJ API
-            (async () => {
-              try {
-                const token = getCachedToken() || (await getAccessToken()).accessToken;
-                if (!token) return null;
-                const imgRes = await fetch(`https://developers.cjdropshipping.com/api2.0/v1/product/query?pid=${id}`, {
-                  method: 'GET',
-                  headers: { 'CJ-Access-Token': token, 'Content-Type': 'application/json' },
-                });
-                if (imgRes.ok) {
-                  const imgResult = await imgRes.json();
-                  if (imgResult.code === 200 && imgResult.data) {
-                    return imgResult.data;
-                  }
-                }
-              } catch (e) {
-                pdpLogger.debug(`Image fetch failed for ${id}`, { error: e.message });
-              }
-              return null;
-            })(),
-            // Fetch variants in parallel
+          // PARALLEL: Fetch variants simultaneously
+          const [variantResult] = await Promise.allSettled([
+            // Fetch variants
             getProductVariants(id),
           ]);
 
-          // Apply image results
-          if (imageResult.status === 'fulfilled' && imageResult.value) {
-            const imgData = imageResult.value;
-            if (imgData.productImageSet) {
-              productData.productImageSet = imgData.productImageSet;
-            }
-            if (imgData.productVideo) {
-              productData.productVideo = imgData.productVideo;
-            }
-          }
 
           setProduct(productData);
           buildImageGallery(productData);
@@ -111,15 +81,6 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
   }, [id, pdpLogger]);
 
   const buildImageGallery = (prod) => {
-    const hasDynamicMedia = Boolean(prod.productImageSet || prod.productVideo);
-    
-    // Check cache first
-    const cached = getCachedImages(id);
-    if (!hasDynamicMedia && cached && cached.length > 0) {
-      setProductImages(cached);
-      return;
-    }
-
     const uniqueImages = new Map(); // key -> url
     const addImg = (url) => {
       if (!url) return;
@@ -131,43 +92,44 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
         if (!uniqueImages.has(url)) uniqueImages.set(url, url);
       }
     };
-    
-    // Primary image
-    const mainImg = prod.productImage || '/mask.png';
-    addImg(mainImg);
-    
-    // Extract images from productImageSet (CJ API often returns this)
-    if (Array.isArray(prod.productImageSet)) {
-      prod.productImageSet.forEach(img => addImg(img));
+    // 1. Extract videos from HTML description first (so we know if we have them)
+    let extractedVideos = [];
+    let extractedImages = [];
+    if (prod.description && containsHtml(prod.description)) {
+      extractedVideos = extractVideosFromHtml(prod.description);
+      extractedImages = extractImagesFromHtml(prod.description);
+      
+      extractedVideos.forEach(vid => {
+        if (!prod.productVideo) {
+          prod.productVideo = vid; // Set productVideo if we don't have one
+        }
+      });
     }
-    
-    // Extract video if available
+
+    // 2. Add ALL Videos FIRST
     if (prod.productVideo) {
       addImg(prod.productVideo);
     }
+    extractedVideos.forEach(vid => addImg(vid));
     
-    // Extract images from HTML description (CJ products)
-    if (prod.description && containsHtml(prod.description)) {
-      const htmlImages = extractImagesFromHtml(prod.description);
-      htmlImages.forEach(img => addImg(img));
+    // 3. Add Primary image SECOND
+    const mainImg = prod.productImage || '/mask.png';
+    addImg(mainImg);
+    
+    // 4. Add the rest of the images
+    if (Array.isArray(prod.productImageSet)) {
+      prod.productImageSet.forEach(img => addImg(img));
     }
-
     if (Array.isArray(prod.productImages)) {
       prod.productImages.forEach(img => addImg(img));
     }
+    extractedImages.forEach(img => addImg(img));
     
     const images = Array.from(uniqueImages.values());
-    
-    // For mock products, add lifestyle images using existing assets
-    if (id === '1798542129166426112' && images.length < 3) {
-      if (!images.includes('/mask.png')) images.push('/mask.png');
-    }
-
 
     // Ensure at least 1 image
     if (images.length === 0) images.push('/mask.png');
     
-    setCachedImages(id, images);
     setProductImages(images);
   };
 
@@ -226,7 +188,14 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
             {id === '1798542129166426112' && (
               <div className={`absolute w-[80%] h-[80%] rounded-full opacity-30 mix-blend-screen transition-all duration-500 blur-2xl ${getWavelengthColor()}`}></div>
             )}
-            {imageSrc && imageSrc.match(/\.(mp4|webm|ogg)$/i) ? (
+            {imageSrc && (imageSrc.includes('youtube.com') || imageSrc.includes('youtu.be') || imageSrc.includes('vimeo.com')) ? (
+              <iframe
+                src={imageSrc}
+                className="w-full h-full min-h-[350px] object-contain select-none z-10"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : imageSrc && (imageSrc.match(/\.(mp4|webm|ogg)$/i) || imageSrc === product.productVideo) ? (
               <video 
                 src={imageSrc} 
                 autoPlay 
@@ -283,12 +252,27 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
                       : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img 
-                    src={img} 
-                    alt={`${title} view ${idx + 1}`}
-                    className="w-full h-full object-contain p-1 bg-white"
-                    onError={(e) => { e.target.onerror = null; e.target.src = '/mask.png'; }}
-                  />
+                  {img && (img.includes('youtube.com') || img.includes('youtu.be') || img.includes('vimeo.com')) ? (
+                    <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                        <div className="w-0 h-0 border-t-4 border-t-transparent border-l-6 border-l-white border-b-4 border-b-transparent ml-1"></div>
+                      </div>
+                    </div>
+                  ) : img && (img.match(/\.(mp4|webm|ogg)$/i) || img === product.productVideo) ? (
+                    <video 
+                      src={img}
+                      className="w-full h-full object-cover p-1 bg-white"
+                      muted
+                      playsInline
+                    />
+                  ) : (
+                    <img 
+                      src={img} 
+                      alt={`${title} view ${idx + 1}`}
+                      className="w-full h-full object-contain p-1 bg-white"
+                      onError={(e) => { e.target.onerror = null; e.target.src = '/mask.png'; }}
+                    />
+                  )}
                 </button>
               ))}
             </div>

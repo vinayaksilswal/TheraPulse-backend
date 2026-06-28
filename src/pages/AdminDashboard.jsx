@@ -154,7 +154,8 @@ function DashboardContent({ onLogout }) {
     description: '',
     highlights: ['', '', '', ''],
     productImage: '',
-    productImages: []
+    productImages: [],
+    productVideo: ''
   });
   const [isAiRewriting, setIsAiRewriting] = useState(false);
   const [aiSuccessMessage, setAiSuccessMessage] = useState('');
@@ -327,7 +328,8 @@ function DashboardContent({ onLogout }) {
       productImage: product.productImage || '',
       productImages: Array.isArray(product.productImages) 
         ? [...product.productImages] 
-        : [product.productImage].filter(Boolean)
+        : [product.productImage].filter(Boolean),
+      productVideo: product.productVideo || ''
     });
     setAiSuccessMessage('');
     setNewImageUrl('');
@@ -403,12 +405,17 @@ function DashboardContent({ onLogout }) {
       description: editForm.description,
       highlights: editForm.highlights.filter(Boolean),
       productImage: editForm.productImage,
-      productImages: editForm.productImages
+      productImages: editForm.productImages,
+      productVideo: editForm.productVideo
     };
 
-    await updateStorefrontProduct(updated);
-    setEditingProduct(null);
-    loadCjCatalog();
+    const success = await updateStorefrontProduct(updated);
+    if (success) {
+      setEditingProduct(null);
+      loadCjCatalog();
+    } else {
+      alert('Failed to save product changes. Please try again.');
+    }
   };
 
   const handleDeleteClick = async (pid, name) => {
@@ -1389,6 +1396,19 @@ function DashboardContent({ onLogout }) {
                   value={editForm.description}
                   onChange={handleEditFormChange}
                   className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-obsidian focus:outline-none focus:border-led-purple/50 focus:ring-1 focus:ring-led-purple/20 shadow-sm leading-relaxed"
+                />
+              </div>
+
+              {/* Video URL Input */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Product Video URL (MP4, YouTube, Vimeo)</label>
+                <input
+                  type="text"
+                  name="productVideo"
+                  value={editForm.productVideo}
+                  onChange={handleEditFormChange}
+                  placeholder="https://youtube.com/watch?v=... or https://.../video.mp4"
+                  className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs text-obsidian focus:outline-none focus:border-led-purple/50 focus:ring-1 focus:ring-led-purple/20 shadow-sm font-mono text-slate-500"
                 />
               </div>
 

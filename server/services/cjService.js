@@ -2,7 +2,7 @@ import { createLogger } from '../../src/utils/logger.js';
 import { fetchWithRetry, RateLimiter } from '../../src/utils/retry.js';
 import { applyRetailMarkup, getStrikethroughPrice } from '../../src/utils/pricing.js';
 import { sanitizeProduct } from '../../src/utils/validators.js';
-import { generateProductCopy, containsHtml, stripHtml } from './geminiService.js';
+import { generateProductCopy, containsHtml, stripHtml, extractVideosFromHtml } from './geminiService.js';
 
 const API_KEY = process.env.CJ_API_KEY || process.env.VITE_CJ_API_KEY || '';
 const logger = createLogger('BackendCJApi');
@@ -162,6 +162,9 @@ export const queryCJProduct = async (pid) => {
           ? stripHtml(data.description)
           : data.description
         : '';
+        
+      const htmlVideos = data.description ? extractVideosFromHtml(data.description) : [];
+      const extractedVideo = htmlVideos.length > 0 ? htmlVideos[0] : '';
 
       const wholesaleCost = parseFloat(data.sellPrice || data.productPriceMin || 12.0);
       const retailPrice = applyRetailMarkup(wholesaleCost);
@@ -206,6 +209,7 @@ export const queryCJProduct = async (pid) => {
           (Array.isArray(data.productImage) ? data.productImage[0] : data.productImage) ||
           '',
         productImages: data.productImageSet || [data.bigImage || '/mask.png'],
+        productVideo: data.productVideoUrl || data.video || data.videoUrl || data.productVideo || extractedVideo || '',
         productSku: data.productSku || data.sku || '',
       });
 

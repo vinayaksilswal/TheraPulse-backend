@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { PayPalScriptProvider } from '@paypal/react-paypal-js';
+import ScrollToTop from './components/ScrollToTop';
 import Navbar from './components/Navbar';
 import Homepage from './pages/Homepage';
 import ProductsCatalog from './pages/ProductsCatalog';
@@ -183,6 +184,7 @@ export default function App() {
     <ErrorBoundary>
       <PayPalScriptProvider options={{ 'client-id': import.meta.env.VITE_PAYPAL_CLIENT_ID || 'test', currency: 'USD' }}>
         <BrowserRouter>
+          <ScrollToTop />
           <div className="relative min-h-screen bg-clinical-white text-obsidian selection:bg-led-red selection:text-white">
             
             {/* Global Navigation */}

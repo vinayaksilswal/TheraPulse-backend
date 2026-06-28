@@ -90,6 +90,40 @@ export const extractImagesFromHtml = (html) => {
   }
 };
 
+export const extractVideosFromHtml = (html) => {
+  if (!html || typeof html !== 'string') return [];
+  try {
+    const doc1 = new DOMParser().parseFromString(html, 'text/html');
+    const decoded = doc1.body.textContent || html;
+    const doc = new DOMParser().parseFromString(decoded, 'text/html');
+    const urls = [];
+    
+    // Extract from <video> tags
+    const videos = doc.querySelectorAll('video');
+    videos.forEach((vid) => {
+      const src = vid.getAttribute('src');
+      if (src && src.startsWith('http')) urls.push(src);
+      const source = vid.querySelector('source');
+      if (source && source.getAttribute('src')) {
+         urls.push(source.getAttribute('src'));
+      }
+    });
+
+    // Extract from <iframe> tags (YouTube, Vimeo, etc)
+    const iframes = doc.querySelectorAll('iframe');
+    iframes.forEach((iframe) => {
+      const src = iframe.getAttribute('src');
+      if (src && (src.includes('youtube.com') || src.includes('youtu.be') || src.includes('vimeo.com') || src.endsWith('.mp4'))) {
+        urls.push(src);
+      }
+    });
+    
+    return [...new Set(urls)];
+  } catch {
+    return [];
+  }
+};
+
 export const generateLocalFallbackCopy = (productName, rawDescription) => ({
   title: productName,
   description: rawDescription || 'Premium clinical technology.',

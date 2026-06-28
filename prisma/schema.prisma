@@ -19,6 +19,7 @@ model Product {
   categoryName    String
   productImage    String
   productImages   String[]
+  productVideo    String?
   description     String
   highlights      String[]
   tagline         String?
