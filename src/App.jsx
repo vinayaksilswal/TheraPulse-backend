@@ -8,7 +8,6 @@ import ProductsCatalog from './pages/ProductsCatalog';
 import ProductDetail from './pages/ProductDetail';
 import CheckoutDrawer from './components/CheckoutDrawer';
 import CartDrawer from './components/CartDrawer';
-import StickyCart from './components/StickyCart';
 import PaypalModal from './components/PaypalModal';
 import { recordSale } from './services/saleService';
 import { calculateCartTotal } from './utils/pricing';
@@ -228,30 +227,38 @@ export default function App() {
             </main>
 
             {/* Global Footer */}
-            <footer className="bg-slate-50 py-12 px-6 md:px-12 border-t border-slate-200/80 text-center text-xs text-ash-gray">
-              <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 font-medium">
-                <div className="flex items-center gap-2 select-none">
-                  <img src="/logo.png" alt="TheraPulse Logo" className="h-8 object-contain" />
-                  <span className="text-ash-gray font-light">| Clinical Skincare Labs</span>
+            <footer className="bg-slate-50 py-12 px-6 md:px-12 border-t border-slate-200/80 text-xs text-ash-gray">
+              <div className="max-w-7xl mx-auto flex flex-col items-center gap-8 font-medium">
+                
+                {/* Top Section */}
+                <div className="flex flex-col md:flex-row items-center justify-between w-full gap-8">
+                  {/* Brand */}
+                  <div className="flex flex-col items-center md:items-start gap-4">
+                    <a href="/" className="flex flex-col md:flex-row items-center md:items-end gap-2 md:gap-3 select-none">
+                      <img src="/logo.png" alt="TheraPulse Logo" className="h-10 md:h-12 object-contain" />
+                      <span className="text-ash-gray font-light whitespace-nowrap mb-1">| Clinical Skincare Labs</span>
+                    </a>
+                  </div>
+
+                  {/* Links */}
+                  <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center text-center md:text-left">
+                    <div className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6">
+                      <a href="/product/mask#science" className="hover:text-obsidian transition-colors duration-150">Clinical Data</a>
+                      <a href="/product/mask#comparison" className="hover:text-obsidian transition-colors duration-150">Comparison Study</a>
+                    </div>
+                    <div className="flex flex-wrap justify-center md:justify-start gap-4 md:gap-6 text-zinc-400">
+                      <a href="/policies/terms" className="hover:text-obsidian transition-colors duration-150">Terms of Service</a>
+                      <a href="/policies/privacy" className="hover:text-obsidian transition-colors duration-150">Privacy Policy</a>
+                      <a href="/policies/shipping" className="hover:text-obsidian transition-colors duration-150">Shipping Policy</a>
+                      <a href="/policies/refunds" className="hover:text-obsidian transition-colors duration-150">Refund Policy</a>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-8 items-center text-center">
-                  <div className="flex flex-wrap justify-center gap-4">
-                    <a href="/product/mask#science" className="hover:text-obsidian transition-colors duration-150">Clinical Data</a>
-                    <a href="/product/mask#comparison" className="hover:text-obsidian transition-colors duration-150">Comparison Study</a>
-                    <a href="/admin" className="hover:text-obsidian transition-colors duration-150">Admin Center</a>
-                  </div>
-                  <div className="flex flex-wrap justify-center gap-4 text-zinc-400">
-                    <a href="/policies/terms" className="hover:text-obsidian transition-colors duration-150">Terms of Service</a>
-                    <a href="/policies/privacy" className="hover:text-obsidian transition-colors duration-150">Privacy Policy</a>
-                    <a href="/policies/shipping" className="hover:text-obsidian transition-colors duration-150">Shipping Policy</a>
-                    <a href="/policies/refunds" className="hover:text-obsidian transition-colors duration-150">Refund Policy</a>
-                  </div>
-                </div>
-
-                <div>
+                {/* Bottom Section */}
+                <div className="w-full pt-8 border-t border-slate-200/60 text-center">
                   <p>© 2026 TheraPulse Technologies Inc. All rights reserved.</p>
-                  <p className="text-[10px] text-zinc-500 mt-1">Disclaimer: TheraPulse is designed for general cosmetic rejuvenation. Please consult a dermatologist for severe skin disorders.</p>
+                  <p className="text-[10px] text-zinc-500 mt-2 max-w-2xl mx-auto">Disclaimer: TheraPulse is designed for general cosmetic rejuvenation. Please consult a dermatologist for severe skin disorders.</p>
                 </div>
               </div>
             </footer>
@@ -282,9 +289,6 @@ export default function App() {
               cart={cart}
               onSuccess={handlePaypalSuccess}
             />
-
-            {/* Mobile Sticky CTA */}
-            <StickyCart cart={cart} onCheckoutClick={openCheckout} />
           </div>
         </BrowserRouter>
       </PayPalScriptProvider>
