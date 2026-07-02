@@ -245,12 +245,48 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
     return () => { if (script) script.remove(); };
   }, [product, selectedVariant, id, ratingData]);
 
-  // Update page title for SEO
+  // Update page title and meta tags for SEO
   useEffect(() => {
-    if (product) {
-      document.title = `${formatProductName(product.productName, id)} | TheraPulse™ Clinical Skincare`;
-    }
-    return () => { document.title = 'TheraPulse™ | Professional Skincare at Home'; };
+    if (!product) return;
+    
+    const titleText = `${formatProductName(product.productName, id)} | TheraPulse™ Clinical Skincare`;
+    const descText = containsHtml(product.description) ? stripHtml(product.description).substring(0, 155) + '...' : product.description.substring(0, 155) + '...';
+    const imageSrc = product.productImage || 'https://www.therapulse.store/logo.png';
+    const url = `https://www.therapulse.store/product/${id}`;
+
+    document.title = titleText;
+
+    const setMeta = (name, content, property = false) => {
+      const attr = property ? 'property' : 'name';
+      let element = document.querySelector(`meta[${attr}="${name}"]`);
+      if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute(attr, name);
+        document.head.appendChild(element);
+      }
+      element.setAttribute('content', content);
+    };
+
+    setMeta('description', descText);
+    setMeta('og:title', titleText, true);
+    setMeta('og:description', descText, true);
+    setMeta('og:image', imageSrc, true);
+    setMeta('og:url', url, true);
+    setMeta('twitter:title', titleText);
+    setMeta('twitter:description', descText);
+    setMeta('twitter:image', imageSrc);
+
+    return () => { 
+      document.title = 'TheraPulse™ | Professional Wellness & Clinical Skincare'; 
+      setMeta('description', 'TheraPulse™ premium wellness devices, electric massagers, and clinical-grade LED light therapy. Rejuvenate, recover, and optimize your life at home.');
+      setMeta('og:title', 'TheraPulse™ | Professional Clinical Skincare & Wellness', true);
+      setMeta('og:description', 'Clinical-grade LED light therapy, targeted massagers, & wellness tools. Rejuvenate skin and eliminate tension at home. Free shipping + 60-day guarantee.', true);
+      setMeta('og:image', 'https://www.therapulse.store/logo.png', true);
+      setMeta('og:url', 'https://www.therapulse.store/', true);
+      setMeta('twitter:title', 'TheraPulse™ | Professional Clinical Skincare at Home');
+      setMeta('twitter:description', 'Clinical-grade LED light therapy. Rejuvenate skin, eliminate wrinkles, clear acne. Free shipping + 60-day money-back guarantee.');
+      setMeta('twitter:image', 'https://www.therapulse.store/logo.jpg');
+    };
   }, [product, id]);
 
   function buildImageGallery(prod) {
