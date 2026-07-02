@@ -30,12 +30,14 @@ import ordersRouter from './routes/orders.js';
 import paypalRouter from './routes/paypal.js';
 import warriorplusRouter from './routes/warriorplus.js';
 import adminRouter from './routes/admin.js';
+import metaRouter from './routes/meta.js';
 
 app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/paypal', paypalRouter);
 app.use('/api/warriorplus', warriorplusRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/meta', metaRouter);
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production' && process.env.VERCEL !== '1') {

@@ -1,21 +1,64 @@
-import React, { useState } from 'react';
-import { ShoppingBag, Terminal, X, Menu } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingBag, X, Menu, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+// Countdown timer: resets at midnight UTC each day
+function useCountdown() {
+  const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
+
+  useEffect(() => {
+    const calcTimeLeft = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(23, 59, 59, 999);
+      const diff = midnight - now;
+      if (diff <= 0) return { h: 0, m: 0, s: 0 };
+      return {
+        h: Math.floor(diff / (1000 * 60 * 60)),
+        m: Math.floor((diff / (1000 * 60)) % 60),
+        s: Math.floor((diff / 1000) % 60),
+      };
+    };
+    setTimeLeft(calcTimeLeft());
+    const timer = setInterval(() => setTimeLeft(calcTimeLeft()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return timeLeft;
+}
 
 export default function Navbar({ cartCount, onCartOpen, onCheckoutClick }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const countdown = useCountdown();
+
+  const pad = (n) => String(n).padStart(2, '0');
 
   return (
     <header className="w-full z-40 relative">
-      {/* Promo Bar */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border-b border-slate-800/20 text-xs py-2.5 px-4 text-center flex items-center justify-center gap-2">
-        <span className="flex h-2 w-2 relative">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-led-red opacity-75"></span>
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-led-red"></span>
-        </span>
-        <span className="font-semibold tracking-wider text-white">
-          CLINICAL BREAKTHROUGH: FREE EXPRESS SHIPPING + 60-DAY RESULT GUARANTEE TODAY
-        </span>
+      {/* Promo Bar with Countdown */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border-b border-slate-800/20 text-xs py-2.5 px-4 text-center">
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-led-red opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-led-red"></span>
+          </span>
+          <span className="font-semibold tracking-wider text-white">
+            FREE EXPRESS SHIPPING + 60-DAY GUARANTEE
+          </span>
+          <span className="text-white/40">|</span>
+          <span className="inline-flex items-center gap-1.5 text-amber-400 font-bold">
+            <Clock className="h-3 w-3" />
+            <span className="countdown-digit">Sale ends in {pad(countdown.h)}:{pad(countdown.m)}:{pad(countdown.s)}</span>
+          </span>
+        </div>
+        {/* Trust micro-strip */}
+        <div className="flex items-center justify-center gap-4 mt-1.5 text-[10px] text-white/40 font-medium">
+          <span>🔒 Secure Checkout</span>
+          <span>•</span>
+          <span>⭐ 10,000+ Happy Customers</span>
+          <span>•</span>
+          <span>📦 Tracked DHL Delivery</span>
+        </div>
       </div>
 
       {/* Main Header */}
@@ -64,6 +107,26 @@ export default function Navbar({ cartCount, onCartOpen, onCheckoutClick }) {
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-50 animate-slide-down">
+          <nav className="flex flex-col p-4 gap-1">
+            <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="py-3 px-4 rounded-xl text-sm font-bold text-gray-900 hover:bg-slate-50 transition-colors">
+              Home
+            </Link>
+            <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className="py-3 px-4 rounded-xl text-sm font-bold text-gray-900 hover:bg-slate-50 transition-colors">
+              Shop All Products
+            </Link>
+            <button
+              onClick={() => { setIsMobileMenuOpen(false); onCheckoutClick(); }}
+              className="mt-2 py-3 px-4 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-colors text-center"
+            >
+              Express Checkout
+            </button>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

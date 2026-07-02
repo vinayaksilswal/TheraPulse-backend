@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 export default function Hero() {
   const handleScrollToCatalog = () => {
@@ -8,6 +9,44 @@ export default function Hero() {
       catalogElement.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  const location = useLocation();
+  const [heroCopy, setHeroCopy] = useState({
+    headline: "Your daily routine,",
+    subHeadline: "elevated by clinical science.",
+    paragraph: "Welcome to TheraPulse. We bridge the gap between professional dermatology and everyday care. Discover research-backed technologies and bioactive science designed to intuitively heal, protect, and restore your skin’s natural radiance."
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const campaign = params.get('utm_campaign')?.toLowerCase() || '';
+
+    if (campaign.includes('eye') || campaign.includes('puffy')) {
+      setHeroCopy({
+        headline: "Banish Puffy Eyes,",
+        subHeadline: "with professional at-home care.",
+        paragraph: "Tired of waking up with tired, puffy eyes? Our professional-grade eye massager depuffs, brightens, and tightens using targeted light therapy and soothing warmth. Reclaim your wide-awake look today."
+      });
+    } else if (campaign.includes('neck') || campaign.includes('sculpt')) {
+      setHeroCopy({
+        headline: "Sculpt & Lift at Home,",
+        subHeadline: "upgrade your skincare routine.",
+        paragraph: "Don't ignore your neck and jawline. The TheraPulse Facial & Neck Massager brings professional dermatology right to your vanity. Lift, tighten, and smooth out those stubborn areas seamlessly."
+      });
+    } else if (campaign.includes('mask') || campaign.includes('led')) {
+      setHeroCopy({
+        headline: "Reverse Aging,",
+        subHeadline: "eliminate wrinkles and clear acne.",
+        paragraph: "Transform your daily skincare routine with clinical-grade LED light therapy. Experience professional cellular repair that seamlessly fits into your busy lifestyle."
+      });
+    } else if (campaign.includes('shoulder') || campaign.includes('tension')) {
+      setHeroCopy({
+        headline: "Relieve Tension Instantly,",
+        subHeadline: "professional care for your lifestyle.",
+        paragraph: "Don't let tension slow you down. Experience professional-grade wellness with our Electric Neck & Shoulder Massager. Melt away stress and seamlessly integrate premium recovery into your daily routine."
+      });
+    }
+  }, [location]);
 
   return (
     <section className="relative overflow-hidden py-20 md:py-32 px-6 md:px-12 max-w-7xl mx-auto border-b border-slate-200/60 bg-white">
@@ -73,15 +112,15 @@ export default function Hero() {
 
           {/* Headline */}
           <h1 className="text-4xl md:text-5xl lg:text-[54px] font-black tracking-tight leading-[1.12] text-slate-900 font-sans">
-            Your daily routine,<br />
+            {heroCopy.headline}<br />
             <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-500 bg-clip-text text-transparent">
-              elevated by clinical science.
+              {heroCopy.subHeadline}
             </span>
           </h1>
 
           {/* Sub-headline */}
           <p className="text-base md:text-[17px] text-slate-600 font-normal leading-relaxed max-w-xl">
-            Welcome to <span className="font-semibold text-slate-900">TheraPulse</span>. We bridge the gap between professional dermatology and everyday care. Discover research-backed technologies and bioactive science designed to intuitively heal, protect, and restore your skin’s natural radiance.
+            {heroCopy.paragraph}
           </p>
 
           {/* CTA Buttons */}

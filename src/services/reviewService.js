@@ -133,37 +133,57 @@ const getAllReviewsStore = () => {
   }
 };
 
-const generateGenericReviews = () => {
-  const now = Date.now();
-  return [
-    {
-      id: `gen-1-${now}`,
-      name: 'Emily S.',
-      rating: 5,
-      title: 'Surprisingly good quality',
-      body: 'I was a bit skeptical buying this online, but it actually exceeded my expectations. The build quality feels premium and it works exactly as described. Shipping was reasonably fast too.',
-      date: new Date(now - 1000 * 60 * 60 * 24 * 3).toISOString().split('T')[0],
-      verified: true
-    },
-    {
-      id: `gen-2-${now}`,
-      name: 'Mark T.',
-      rating: 5,
-      title: 'Highly recommend this!',
-      body: 'Been using this for a couple of weeks now and I am really impressed with the results. It is very easy to use and definitely worth the price point. Customer service was also very helpful when I had a question about tracking.',
-      date: new Date(now - 1000 * 60 * 60 * 24 * 12).toISOString().split('T')[0],
-      verified: true
-    },
-    {
-      id: `gen-3-${now}`,
-      name: 'Jessica C.',
-      rating: 4,
-      title: 'Works great, minor shipping delay',
-      body: 'The product itself is fantastic and does exactly what I needed it to do. I am giving it 4 stars only because the delivery took about two days longer than expected, but otherwise I am very happy with my purchase.',
-      date: new Date(now - 1000 * 60 * 60 * 24 * 25).toISOString().split('T')[0],
-      verified: true
-    }
+const generateGenericReviews = (productId) => {
+  const count = Math.floor(Math.random() * 101) + 100; // 100 to 200 reviews
+  const reviews = [];
+  
+  const firstNames = ['James', 'Mary', 'Robert', 'Patricia', 'John', 'Jennifer', 'Michael', 'Linda', 'William', 'Elizabeth', 'David', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Christopher', 'Lisa', 'Daniel', 'Nancy', 'Matthew', 'Betty', 'Anthony', 'Margaret', 'Mark', 'Sandra', 'Donald', 'Ashley', 'Steven', 'Kimberly', 'Paul', 'Emily', 'Andrew', 'Donna', 'Joshua', 'Michelle'];
+  const lastInitials = ['A.', 'B.', 'C.', 'D.', 'E.', 'F.', 'G.', 'H.', 'K.', 'L.', 'M.', 'N.', 'P.', 'R.', 'S.', 'T.', 'W.'];
+  
+  const titles = [
+    'Absolutely love it!', 'Exceeded my expectations', 'Highly recommend', 'Game changer', 
+    'Best purchase this year', 'Works exactly as described', 'Incredible quality', 'Very satisfied',
+    'Worth every penny', 'So glad I bought this', 'Five stars', 'Exactly what I needed',
+    'Perfect!', 'Amazing product', 'Great value for money'
   ];
+  
+  const bodies = [
+    'I was skeptical at first, but this completely blew me away. The build quality is fantastic and it arrived super fast.',
+    'This is exactly what I have been looking for. It works perfectly and the materials feel very premium.',
+    'Customer service was great and the product is even better. I use it every day now.',
+    'I bought this on a whim and I am so glad I did. It has really improved my daily routine.',
+    'Five stars all the way. The packaging was beautiful and the item itself is flawless.',
+    'I highly recommend this to anyone on the fence. It performs exceptionally well and looks great too.',
+    'This completely exceeded my expectations. Fast shipping, great price, and phenomenal quality.',
+    'I can genuinely say this is one of the best purchases I have made online. So happy with it!',
+    'Works like a charm! My whole family wants one now after seeing mine.',
+    'It does exactly what it claims to do. Very well made and durable. Fast delivery as well.'
+  ];
+
+  for (let i = 0; i < count; i++) {
+    const isFiveStar = Math.random() > 0.15; // 85% chance of 5 stars
+    const rating = isFiveStar ? 5 : 4;
+    const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastInitials[Math.floor(Math.random() * lastInitials.length)]}`;
+    const title = titles[Math.floor(Math.random() * titles.length)];
+    const body = bodies[Math.floor(Math.random() * bodies.length)];
+    
+    // Spread dates over the last year
+    const daysAgo = Math.floor(Math.random() * 365);
+    const date = new Date(Date.now() - 1000 * 60 * 60 * 24 * daysAgo).toISOString().split('T')[0];
+    
+    reviews.push({
+      id: `gen-${productId || 'prod'}-${i}`,
+      name,
+      rating,
+      title,
+      body,
+      date,
+      verified: Math.random() > 0.05 // 95% verified
+    });
+  }
+  
+  // Sort by newest first
+  return reviews.sort((a, b) => new Date(b.date) - new Date(a.date));
 };
 
 /**
@@ -183,9 +203,9 @@ export const getReviews = (productId) => {
     }
   }
   
-  if (!store[productId] || store[productId].length === 0) {
-    // Dynamically inject genuine-looking reviews for new products
-    const genericReviews = generateGenericReviews();
+  if (!store[productId] || store[productId].length < 100) {
+    // Dynamically inject genuine-looking reviews for new products (or upgrade old caches)
+    const genericReviews = generateGenericReviews(productId);
     store[productId] = genericReviews;
     try {
       localStorage.setItem(REVIEWS_KEY, JSON.stringify(store));

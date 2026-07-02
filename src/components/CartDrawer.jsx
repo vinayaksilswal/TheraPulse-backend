@@ -1,5 +1,7 @@
 import React from 'react';
-import { X, Trash2, ShieldCheck, ShoppingBag, Plus, Minus } from 'lucide-react';
+import { X, Trash2, ShieldCheck, ShoppingBag, Plus, Minus, Truck, Lock, Gift, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { trackEvent, generateEventId } from '../utils/metaPixel';
 
 export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeItem, onCheckoutClick }) {
   if (!isOpen) return null;
@@ -31,6 +33,16 @@ export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeIte
             </button>
           </div>
 
+          {/* Free Shipping Progress */}
+          {cart.length > 0 && (
+            <div className="px-6 pt-4 pb-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
+                <Truck className="h-4 w-4" />
+                🎉 Congrats! You've unlocked FREE shipping!
+              </div>
+            </div>
+          )}
+
           {/* Body */}
           <div className="flex-grow overflow-y-auto p-6 space-y-6 bg-white">
             {cart.length === 0 ? (
@@ -40,8 +52,15 @@ export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeIte
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-obsidian">Your cart is empty</h4>
-                  <p className="text-xs text-ash-gray mt-1">Add our biohacking skincare products to get started.</p>
+                  <p className="text-xs text-ash-gray mt-1">Add our clinical skincare products to get started.</p>
                 </div>
+                <Link 
+                  to="/products"
+                  onClick={onClose}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-gray-900 text-white hover:bg-black transition-colors"
+                >
+                  Browse Products <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               </div>
             ) : (
               <div className="space-y-4">
@@ -53,6 +72,8 @@ export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeIte
                         src={item.image} 
                         alt={item.name} 
                         className="h-full w-full object-contain"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => { e.target.onerror = null; e.target.src = '/mask.png'; }}
                       />
                     </div>
 
@@ -99,22 +120,51 @@ export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeIte
           {/* Footer Subtotal & Checkout */}
           {cart.length > 0 && (
             <div className="p-6 border-t border-slate-200 bg-slate-50 space-y-4">
+              {/* Order Protection */}
+              <div className="flex items-center gap-2.5 bg-blue-50 border border-blue-100 rounded-xl px-4 py-2.5">
+                <Gift className="h-4 w-4 text-blue-600 shrink-0" />
+                <div className="text-[11px]">
+                  <span className="font-bold text-blue-800">Order Protection Included</span>
+                  <span className="text-blue-600 ml-1">— 60-day guarantee + free returns</span>
+                </div>
+              </div>
+
               <div className="flex justify-between items-center text-sm font-bold text-obsidian">
                 <span>Subtotal</span>
                 <span className="font-mono text-lg text-led-red text-glow-red">${total.toFixed(2)}</span>
               </div>
               <button
                 onClick={() => {
+                  const eventId = generateEventId();
+                  trackEvent('InitiateCheckout', {
+                    content_ids: cart.map(i => i.id),
+                    content_type: 'product',
+                    value: total,
+                    currency: 'USD',
+                    num_items: cart.reduce((sum, item) => sum + item.qty, 0)
+                  }, eventId);
                   onClose();
                   onCheckoutClick();
                 }}
-                className="w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider bg-led-red hover:bg-red-600 text-white transition-all duration-200 shadow-lg hover:shadow-red-500/20 text-center"
+                className="w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider bg-led-red hover:bg-red-600 text-white transition-all duration-200 shadow-lg hover:shadow-red-500/20 text-center cta-shimmer"
               >
-                Proceed to Checkout
+                Proceed to Secure Checkout
               </button>
-              <div className="flex items-center justify-center gap-2 text-[10px] text-ash-gray font-bold uppercase tracking-wider font-mono">
-                <ShieldCheck className="h-4 w-4 text-led-purple" />
-                <span>60-Day Satisfaction Guarantee Applied</span>
+
+              {/* Trust Badges */}
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <div className="flex flex-col items-center gap-1 text-center">
+                  <Lock className="h-3.5 w-3.5 text-slate-400" />
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">SSL Secure</span>
+                </div>
+                <div className="flex flex-col items-center gap-1 text-center">
+                  <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">60-Day Guarantee</span>
+                </div>
+                <div className="flex flex-col items-center gap-1 text-center">
+                  <Truck className="h-3.5 w-3.5 text-slate-400" />
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Free Shipping</span>
+                </div>
               </div>
             </div>
           )}

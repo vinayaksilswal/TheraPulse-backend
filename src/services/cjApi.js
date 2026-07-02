@@ -30,6 +30,16 @@ import {
   generateLocalFallbackCopy,
   extractImagesFromHtml,
 } from './geminiService';
+import { productOverrides } from '../data/productOverrides.js';
+
+const applyOverrides = (product) => {
+  if (!product) return product;
+  const override = productOverrides[product.pid || product.id];
+  if (override) {
+    return { ...product, ...override };
+  }
+  return product;
+};
 
 // ─── Configuration ──────────────────────────────────────────────────
 
@@ -286,16 +296,16 @@ export const getStorefrontProducts = () => {
       }
 
       if (modified) needsSave = true;
-      return p;
+      return applyOverrides(p);
     });
 
     if (needsSave) {
       localStorage.setItem(STOREFRONT_PRODUCTS_KEY, JSON.stringify(currentProducts));
     }
-    return currentProducts;
+    return currentProducts.map(applyOverrides);
   } catch (e) {
     logger.error('Failed to parse storefront products', { error: e.message });
-    return MOCK_PRODUCTS;
+    return MOCK_PRODUCTS.map(applyOverrides);
   }
 };
 
@@ -415,7 +425,7 @@ export const getCJProducts = async (page = 1, size = 50) => {
     const data = await res.json();
     if (data.success) {
       logger.info(`Loaded catalog from server: ${data.list.length} products total.`);
-      return { success: true, list: data.list, mode: 'Live' };
+      return { success: true, list: data.list.map(applyOverrides), mode: 'Live' };
     }
     throw new Error(data.error || 'Unknown API error');
   } catch (error) {
@@ -599,14 +609,14 @@ export const queryCJProduct = async (pid) => {
           await fetch('/api/products', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data.product),
+            body: JSON.stringify(applyOverrides(data.product)),
           });
           logger.info(`Auto-imported "${data.product.productName}" to storefront database.`);
         } catch (e) {
           logger.error('Failed auto-import', { error: e.message });
         }
       }
-      return data;
+      return { ...data, product: applyOverrides(data.product) };
     }
     return { success: false, error: data.error || 'Failed to query product' };
   } catch (err) {

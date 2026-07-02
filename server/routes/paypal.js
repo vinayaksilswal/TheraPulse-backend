@@ -1,5 +1,6 @@
 import express from 'express';
 import prisma from '../db.js';
+import { sendPurchaseEvent } from './meta.js';
 
 
 const router = express.Router();
@@ -201,6 +202,31 @@ router.post('/capture-order', async (req, res) => {
             create: orderItemsData
           }
         }
+      });
+      
+      // Fire Meta CAPI Purchase Event
+      const nameParts = (customerData.fullName || '').split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+      
+      await sendPurchaseEvent({
+        orderId: orderNumber,
+        amount: revenue,
+        currency: 'USD',
+        email: customerData.email,
+        firstName,
+        lastName,
+        phone: customerData.phone,
+        city: customerData.city,
+        state: customerData.state,
+        zip: customerData.zip,
+        country: customerData.countryCode,
+        items: cart,
+        clientIp: req.headers['x-forwarded-for'] || req.socket?.remoteAddress,
+        userAgent: req.headers['user-agent'],
+        fbp: req.cookies?._fbp || frontendCustomerData?.fbp,
+        fbc: req.cookies?._fbc || frontendCustomerData?.fbc,
+        eventId: frontendCustomerData?.eventId // If passed from frontend for deduplication
       });
       
       res.json({ success: true, captureData, savedOrder });

@@ -39,6 +39,7 @@ const CatalogCard = ({ product, onAddToCart }) => {
           alt={title}
           loading="lazy"
           className="h-[85%] w-[85%] object-contain select-none transition-transform duration-300 group-hover:scale-105 z-10 rounded-lg shadow-sm"
+          referrerPolicy="no-referrer"
           onError={(e) => {
             e.target.onerror = null;
             e.target.src = product.categoryName?.toLowerCase().includes('device') ? '/mask.png' : '/serum.png';

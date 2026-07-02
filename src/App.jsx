@@ -9,6 +9,7 @@ import ProductDetail from './pages/ProductDetail';
 import CheckoutDrawer from './components/CheckoutDrawer';
 import CartDrawer from './components/CartDrawer';
 import PaypalModal from './components/PaypalModal';
+import TopBanner from './components/TopBanner';
 import { recordSale } from './services/saleService';
 import { calculateCartTotal } from './utils/pricing';
 import { createLogger } from './utils/logger';
@@ -186,6 +187,9 @@ export default function App() {
           <ScrollToTop />
           <div className="relative min-h-screen bg-clinical-white text-obsidian selection:bg-led-red selection:text-white">
             
+            {/* Dynamic UTM Top Banner */}
+            <TopBanner />
+
             {/* Global Navigation */}
             <Navbar
               cartCount={cartCount}
@@ -194,7 +198,7 @@ export default function App() {
             />
 
             {/* Dynamic Pages */}
-            <main className="pb-16 md:pb-24">
+            <main className="pb-24 md:pb-28">
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Homepage onAddToCart={onAddToCart} />} />
@@ -253,6 +257,14 @@ export default function App() {
                       <a href="/policies/refunds" className="hover:text-obsidian transition-colors duration-150">Refund Policy</a>
                     </div>
                   </div>
+                </div>
+
+                {/* Payment Methods in Footer */}
+                <div className="flex items-center gap-3 py-2">
+                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">We Accept:</span>
+                  {['Visa', 'Mastercard', 'Amex', 'PayPal', 'Apple Pay'].map(method => (
+                    <span key={method} className="text-[10px] font-bold text-zinc-500 bg-white border border-zinc-200 px-2 py-0.5 rounded">{method}</span>
+                  ))}
                 </div>
 
                 {/* Bottom Section */}
