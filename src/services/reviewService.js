@@ -5,7 +5,7 @@
  * that currently uses localStorage as the data store.
  */
 
-const REVIEWS_KEY = 'therapulse_product_reviews';
+const REVIEWS_KEY = 'lumively_product_reviews';
 
 // Default seed reviews for mock products
 const SEED_REVIEWS = {
@@ -15,7 +15,7 @@ const SEED_REVIEWS = {
       name: 'Sarah M.',
       rating: 5,
       title: 'My skin has never looked better!',
-      body: 'After 3 weeks of using the TheraPulse mask every other day, my fine lines have visibly reduced. The red light mode is my favorite — my skin literally glows the next morning. Worth every penny!',
+      body: 'After 3 weeks of using the Lumively mask every other day, my fine lines have visibly reduced. The red light mode is my favorite — my skin literally glows the next morning. Worth every penny!',
       date: '2026-05-28',
       verified: true
     },

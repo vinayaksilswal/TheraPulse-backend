@@ -239,8 +239,8 @@ export default function App() {
                   {/* Brand */}
                   <div className="flex flex-col items-center md:items-start gap-4">
                     <a href="/" className="flex flex-col md:flex-row items-center md:items-end gap-2 md:gap-3 select-none">
-                      <img src="/logo.png" alt="TheraPulse Logo" className="h-10 md:h-12 object-contain" />
-                      <span className="text-ash-gray font-light whitespace-nowrap mb-1">| Clinical Skincare Labs</span>
+                      <img src="/logo.png" alt="Lumively Logo" className="h-6 md:h-8 object-contain" />
+                      <span className="text-ash-gray font-light whitespace-nowrap mb-1">| Premium Wellness</span>
                     </a>
                   </div>
 
@@ -269,8 +269,8 @@ export default function App() {
 
                 {/* Bottom Section */}
                 <div className="w-full pt-8 border-t border-slate-200/60 text-center">
-                  <p>© 2026 TheraPulse Technologies Inc. All rights reserved.</p>
-                  <p className="text-[10px] text-zinc-500 mt-2 max-w-2xl mx-auto">Disclaimer: TheraPulse is designed for general cosmetic rejuvenation. Please consult a dermatologist for severe skin disorders.</p>
+                  <p>© 2026 Lumively Inc. All rights reserved.</p>
+                  <p className="text-[10px] text-zinc-500 mt-2 max-w-2xl mx-auto">Disclaimer: Lumively products are designed for general cosmetic rejuvenation. Please consult a dermatologist for severe skin disorders.</p>
                 </div>
               </div>
             </footer>

@@ -11,52 +11,7 @@ import WavelengthSection from '../components/WavelengthSection';
 import Comparison from '../components/Comparison';
 import ProductReviews from '../components/ProductReviews';
 
-// ─── Simulated Live Data Hooks ──────────────────────────────────────
-
-function useLiveViewers() {
-  const [viewers, setViewers] = useState(() => Math.floor(Math.random() * 18) + 12);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setViewers(prev => {
-        const change = Math.random() > 0.5 ? 1 : -1;
-        return Math.max(8, Math.min(45, prev + change));
-      });
-    }, 3000 + Math.random() * 4000);
-    return () => clearInterval(interval);
-  }, []);
-  return viewers;
-}
-
-function useStockLevel(productId) {
-  const [stock] = useState(() => {
-    // Deterministic pseudo-random based on product ID
-    const hash = productId.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    return (hash % 12) + 4; // 4-15 items
-  });
-  return stock;
-}
-
-function useRecentPurchases() {
-  const names = ['Sarah K.', 'Michael R.', 'Emma W.', 'James T.', 'Olivia S.', 'David P.', 'Sophia L.', 'Daniel M.', 'Ava C.', 'Chris B.'];
-  const locations = ['New York', 'London', 'Sydney', 'Toronto', 'Miami', 'Chicago', 'Melbourne', 'Dublin', 'Austin', 'Vancouver'];
-  const [purchase, setPurchase] = useState(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const showPurchase = () => {
-      const idx = Math.floor(Math.random() * names.length);
-      const mins = Math.floor(Math.random() * 25) + 2;
-      setPurchase({ name: names[idx], location: locations[idx], mins });
-      setVisible(true);
-      setTimeout(() => setVisible(false), 4000);
-    };
-    const timeout = setTimeout(showPurchase, 5000);
-    const interval = setInterval(showPurchase, 25000 + Math.random() * 15000);
-    return () => { clearTimeout(timeout); clearInterval(interval); };
-  }, []);
-
-  return { purchase, visible };
-}
+// ─── (Fake urgency hooks removed for authentic trust) ──────────────
 
 // ─── Utilities ────────────────────────────────────────────────────────
 function formatProductName(name, id) {
@@ -66,6 +21,8 @@ function formatProductName(name, id) {
 
 function formatVariantName(name) {
   if (!name) return 'Standard Edition';
+  // Clean Lumively branding from variant names
+  let cleanName = name.replace(/TheraPulse/gi, 'Lumively');
   if (name.includes('(')) return name; // Already formatted (e.g. Mask (Standard))
   
   // Convert to lower case for easier matching
@@ -81,7 +38,7 @@ function formatVariantName(name) {
   if (lower.includes('set3') || lower.includes('set 3')) return '3-Piece Set';
   
   // Generic cleanup fallback combining both regexes
-  let clean = name.replace(/(Electric|Neck And Shoulder|Muscle Massager|Wireless|Shoulder And Back|Kneading|Massage Shawl|Neck Masajeador|Relax Pain Relief|TheraPulse|4 Colors|Red Blue Light|Massage Eye Beautification Instrument|Therapeutic Warmth|Face Massage|English|Rose Gold|Dropshipping|Wholesale|Fast Shipping|Multifunctional Manual Six-wheel Neck Massager Massage Relieve Roller Massage Tool)/gi, '').trim();
+  let clean = name.replace(/(Electric|Neck And Shoulder|Muscle Massager|Wireless|Shoulder And Back|Kneading|Massage Shawl|Neck Masajeador|Relax Pain Relief|TheraPulse|Lumively|4 Colors|Red Blue Light|Massage Eye Beautification Instrument|Therapeutic Warmth|Face Massage|English|Rose Gold|Dropshipping|Wholesale|Fast Shipping|Multifunctional Manual Six-wheel Neck Massager Massage Relieve Roller Massage Tool)/gi, '').trim();
   
   if (clean.length < 2) {
     // Fallback: take the last 3 words
@@ -109,13 +66,7 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
   const [ratingData, setRatingData] = useState({ average: 4.8, count: 1240 });
   const [addedToCart, setAddedToCart] = useState(false);
 
-  // Conversion hooks
-  const liveViewers = useLiveViewers();
-  const stockLevel = useStockLevel(id);
-  const { purchase, visible: purchaseVisible } = useRecentPurchases();
-  
-  // Deterministic fake sales count (moved above conditional returns to respect Rules of Hooks)
-  const salesCount = useMemo(() => Math.floor(Math.random() * 30) + 40, [id]);
+  // (Fake urgency hooks removed — no live viewers, stock level, or purchase toasts)
 
   const pdpLogger = useMemo(() => createLogger('ProductDetail'), []);
 
@@ -204,17 +155,17 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
       "@context": "https://schema.org",
       "@type": "Product",
       "name": cleanTitle,
-      "image": product.productImage || "https://www.therapulse.store/mask.png",
+      "image": product.productImage || "https://www.lumively.com/mask.png",
       "description": containsHtml(product.description) ? stripHtml(product.description) : product.description,
-      "brand": { "@type": "Brand", "name": "TheraPulse" },
+      "brand": { "@type": "Brand", "name": "Lumively" },
       "sku": id,
       "offers": {
         "@type": "Offer",
-        "url": `https://www.therapulse.store/product/${id}`,
+        "url": `https://www.lumively.com/product/${id}`,
         "priceCurrency": "USD",
         "price": parseFloat(price || 0).toFixed(2),
         "availability": "https://schema.org/InStock",
-        "seller": { "@type": "Organization", "name": "TheraPulse" },
+        "seller": { "@type": "Organization", "name": "Lumively" },
         "shippingDetails": {
           "@type": "OfferShippingDetails",
           "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "USD" },
@@ -223,7 +174,7 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
         "hasMerchantReturnPolicy": {
           "@type": "MerchantReturnPolicy",
           "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
-          "merchantReturnDays": 60,
+          "merchantReturnDays": 30,
           "returnMethod": "https://schema.org/ReturnByMail"
         }
       },
@@ -249,10 +200,10 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
   useEffect(() => {
     if (!product) return;
     
-    const titleText = `${formatProductName(product.productName, id)} | TheraPulse™ Clinical Skincare`;
+    const titleText = `${formatProductName(product.productName, id)} | Lumively™ Premium Wellness`;
     const descText = containsHtml(product.description) ? stripHtml(product.description).substring(0, 155) + '...' : product.description.substring(0, 155) + '...';
-    const imageSrc = product.productImage || 'https://www.therapulse.store/logo.png';
-    const url = `https://www.therapulse.store/product/${id}`;
+    const imageSrc = product.productImage || 'https://www.lumively.com/logo.png';
+    const url = `https://www.lumively.com/product/${id}`;
 
     document.title = titleText;
 
@@ -277,15 +228,15 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
     setMeta('twitter:image', imageSrc);
 
     return () => { 
-      document.title = 'TheraPulse™ | Professional Wellness & Clinical Skincare'; 
-      setMeta('description', 'TheraPulse™ premium wellness devices, electric massagers, and clinical-grade LED light therapy. Rejuvenate, recover, and optimize your life at home.');
-      setMeta('og:title', 'TheraPulse™ | Professional Clinical Skincare & Wellness', true);
-      setMeta('og:description', 'Clinical-grade LED light therapy, targeted massagers, & wellness tools. Rejuvenate skin and eliminate tension at home. Free shipping + 60-day guarantee.', true);
-      setMeta('og:image', 'https://www.therapulse.store/logo.png', true);
-      setMeta('og:url', 'https://www.therapulse.store/', true);
-      setMeta('twitter:title', 'TheraPulse™ | Professional Clinical Skincare at Home');
-      setMeta('twitter:description', 'Clinical-grade LED light therapy. Rejuvenate skin, eliminate wrinkles, clear acne. Free shipping + 60-day money-back guarantee.');
-      setMeta('twitter:image', 'https://www.therapulse.store/logo.jpg');
+      document.title = 'Lumively™ | Premium Wellness & Clinical Skincare'; 
+      setMeta('description', 'Lumively™ premium wellness devices, electric massagers, and clinical-grade LED light therapy. Rejuvenate, recover, and optimize your life at home.');
+      setMeta('og:title', 'Lumively™ | Premium Clinical Skincare & Wellness', true);
+      setMeta('og:description', 'Clinical-grade LED light therapy, targeted massagers, & wellness tools. Rejuvenate skin and eliminate tension at home. Free shipping + 30-day guarantee.', true);
+      setMeta('og:image', 'https://www.lumively.com/logo.png', true);
+      setMeta('og:url', 'https://www.lumively.com/', true);
+      setMeta('twitter:title', 'Lumively™ | Premium Clinical Skincare at Home');
+      setMeta('twitter:description', 'Clinical-grade LED light therapy. Rejuvenate skin, eliminate wrinkles, clear acne. Free shipping + 30-day money-back guarantee.');
+      setMeta('twitter:image', 'https://www.lumively.com/logo.png');
     };
   }, [product, id]);
 
@@ -404,24 +355,11 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
   const nextImage = () => setActiveImageIndex((prev) => (prev + 1) % productImages.length);
   const prevImage = () => setActiveImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length);
 
-  const stockPercent = Math.max(10, Math.min(90, (stockLevel / 20) * 100));
+
 
   return (
     <>
-      {/* Recent Purchase Toast */}
-      {purchaseVisible && purchase && (
-        <div className="fixed bottom-24 left-4 z-50 animate-slide-up">
-          <div className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-2xl flex items-center gap-3 max-w-xs">
-            <div className="w-9 h-9 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
-              <ShoppingCart className="h-4 w-4 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-gray-900">{purchase.name} from {purchase.location}</p>
-              <p className="text-[10px] text-gray-500">purchased this item {purchase.mins} min ago</p>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       <div className="py-12 px-6 md:px-12 max-w-7xl mx-auto text-left bg-white">
         <Link to="/products" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-8 select-none font-semibold">
@@ -552,17 +490,7 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
           {/* ━━━ Product Info (Right) ━━━ */}
           <div className="lg:col-span-6 space-y-6 lg:sticky lg:top-8">
             
-            {/* Live Viewers + Stock Urgency Bar */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-2 bg-red-50 border border-red-100 rounded-full px-3 py-1.5">
-                <Flame className="h-3.5 w-3.5 text-red-500" />
-                <span className="text-[11px] font-bold text-red-700">Hot Product</span>
-              </div>
-              <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1.5">
-                <div className="live-viewer-dot"></div>
-                <span className="text-[11px] font-bold text-emerald-700">{liveViewers} people viewing this right now</span>
-              </div>
-            </div>
+
 
             {/* Title + Verified Badge */}
             <div className="space-y-3">
@@ -607,21 +535,12 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
               </div>
             </div>
 
-            {/* Stock Urgency */}
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
-                  <Flame className="h-3.5 w-3.5 text-orange-500 animate-bounce-soft" />
-                  Only {stockLevel} left in stock — order soon!
-                </span>
-                <span className="text-[10px] font-mono text-amber-600 font-bold">{salesCount} sold today</span>
-              </div>
-              <div className="w-full h-2 bg-amber-100 rounded-full overflow-hidden">
-                <div className="stock-bar-fill h-full rounded-full" style={{ width: `${100 - stockPercent}%` }}></div>
-              </div>
-              <div className="pt-1 flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-amber-600" />
-                <span className="text-[10px] font-bold text-amber-700">Order within <span className="text-red-600">2 hrs 14 mins</span> for dispatch today.</span>
+            {/* Honest Shipping Info */}
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex items-center gap-3">
+              <Truck className="h-5 w-5 text-emerald-600 shrink-0" />
+              <div>
+                <span className="text-xs font-bold text-emerald-800">In Stock — Ships within 1-3 business days</span>
+                <p className="text-[10px] text-emerald-700 mt-0.5">Free tracked delivery in 7-12 business days via DHL</p>
               </div>
             </div>
 
@@ -688,7 +607,7 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
             {/* Trust Badges (Expanded) */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { icon: <Shield className="h-5 w-5 text-emerald-600" />, label: '60-Day Money-Back Guarantee', bg: 'bg-emerald-50 border-emerald-100' },
+                { icon: <Shield className="h-5 w-5 text-emerald-600" />, label: '30-Day Money-Back Guarantee', bg: 'bg-emerald-50 border-emerald-100' },
                 { icon: <Truck className="h-5 w-5 text-blue-600" />, label: 'Free DHL Express Shipping', bg: 'bg-blue-50 border-blue-100' },
                 { icon: <Lock className="h-5 w-5 text-purple-600" />, label: 'Secure SSL Encrypted Checkout', bg: 'bg-purple-50 border-purple-100' },
                 { icon: <ShieldCheck className="h-5 w-5 text-amber-600" />, label: 'FDA-Cleared Materials Used', bg: 'bg-amber-50 border-amber-100' },
@@ -708,14 +627,14 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
               ))}
             </div>
 
-            {/* ━━━ Why TheraPulse? Benefits Section ━━━ */}
+            {/* ━━━ Why Lumively? Benefits Section ━━━ */}
             <div className="space-y-4 pt-2">
-              <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Why Choose TheraPulse?</h3>
+              <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Why Choose Lumively?</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
                   { icon: <Award className="h-5 w-5 text-purple-600" />, title: 'Medical-Grade Quality', desc: 'Clinical precision components used by dermatologists worldwide' },
                   { icon: <Users className="h-5 w-5 text-blue-600" />, title: '10,000+ Happy Customers', desc: 'Rated 4.9/5 with verified reviews from real users' },
-                  { icon: <Shield className="h-5 w-5 text-emerald-600" />, title: 'Risk-Free 60-Day Trial', desc: 'No results? Full refund. We even cover return shipping' },
+                  { icon: <Shield className="h-5 w-5 text-emerald-600" />, title: 'Risk-Free 30-Day Trial', desc: 'No results? Full refund. We even cover return shipping' },
                   { icon: <Zap className="h-5 w-5 text-amber-500" />, title: 'Clinically Proven Results', desc: 'Visible improvements in skin tone within 2-4 weeks' },
                 ].map((item, i) => (
                   <div key={i} className="flex gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100 benefit-card">
@@ -778,7 +697,7 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
                   <div className="space-y-3">
                     <div className="flex items-start gap-2.5"><Truck className="h-4.5 w-4.5 text-blue-500 shrink-0 mt-0.5" /><span><strong>Free Standard Shipping</strong> — Arrives in 7-12 business days via tracked DHL delivery.</span></div>
                     <div className="flex items-start gap-2.5"><Zap className="h-4.5 w-4.5 text-amber-500 shrink-0 mt-0.5" /><span><strong>Express Shipping</strong> — Add $9.99 for 3-5 business day priority delivery.</span></div>
-                    <div className="flex items-start gap-2.5"><Shield className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" /><span><strong>Risk-Free Returns</strong> — 60-day no-questions-asked refund policy. We cover return shipping.</span></div>
+                    <div className="flex items-start gap-2.5"><Shield className="h-4.5 w-4.5 text-emerald-500 shrink-0 mt-0.5" /><span><strong>Risk-Free Returns</strong> — 30-day no-questions-asked refund policy. We cover return shipping.</span></div>
                   </div>
                 )}
               </div>

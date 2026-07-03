@@ -7,7 +7,7 @@ export default function ShippingPolicy() {
       
       <div className="prose prose-slate max-w-none space-y-6">
         <p className="text-lg">
-          Thank you for visiting and shopping at TheraPulse Technologies Inc. Following are the terms and conditions that constitute our Shipping Policy.
+          Thank you for visiting and shopping at Lumively Inc. Following are the terms and conditions that constitute our Shipping Policy.
         </p>
 
         <h2 className="text-2xl font-bold mt-8 mb-4">Domestic Shipping Policy</h2>
@@ -39,12 +39,12 @@ export default function ShippingPolicy() {
 
         <h3 className="text-xl font-semibold mt-6 mb-2">Customs, Duties and Taxes</h3>
         <p>
-          TheraPulse Technologies Inc. is not responsible for any customs and taxes applied to your order. All fees imposed during or after shipping are the responsibility of the customer (tariffs, taxes, etc.).
+          Lumively Inc. is not responsible for any customs and taxes applied to your order. All fees imposed during or after shipping are the responsibility of the customer (tariffs, taxes, etc.).
         </p>
 
         <h3 className="text-xl font-semibold mt-6 mb-2">Damages</h3>
         <p>
-          If you received your order damaged, please contact us within 48 hours of delivery at support@therapulse.com with photos of the damaged item and packaging so we can file a claim and arrange a replacement.
+          If you received your order damaged, please contact us within 48 hours of delivery at support@lumively.com with photos of the damaged item and packaging so we can file a claim and arrange a replacement.
         </p>
 
         <h2 className="text-2xl font-bold mt-8 mb-4">International Shipping Policy</h2>

@@ -9,7 +9,7 @@ export default function PrivacyPolicy() {
         <p>Last Updated: {new Date().toLocaleDateString()}</p>
         
         <p>
-          This Privacy Policy describes how TheraPulse Technologies Inc. ("we", "us", or "our") collects, uses, and shares your personal information when you visit or make a purchase from our website.
+          This Privacy Policy describes how Lumively Inc. ("we", "us", or "our") collects, uses, and shares your personal information when you visit or make a purchase from our website.
         </p>
 
         <h2 className="text-2xl font-bold mt-8 mb-4">Information We Collect</h2>
@@ -50,7 +50,7 @@ export default function PrivacyPolicy() {
 
         <h2 className="text-2xl font-bold mt-8 mb-4">Contact Us</h2>
         <p>
-          For more information about our privacy practices, if you have questions, or if you would like to make a complaint, please contact us by e-mail at support@therapulse.com.
+          For more information about our privacy practices, if you have questions, or if you would like to make a complaint, please contact us by e-mail at support@lumively.com.
         </p>
       </div>
     </div>

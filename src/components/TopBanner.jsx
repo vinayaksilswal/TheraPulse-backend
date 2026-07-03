@@ -26,7 +26,7 @@ export default function TopBanner() {
       });
     } else if (campaign.includes('mask') || campaign.includes('led')) {
       setMessaging({
-        text: "Bring the Clinic Home: 42% OFF TheraPulse Clinical LED Mask",
+        text: "Bring the Clinic Home: 42% OFF Lumively Clinical LED Mask",
         icon: <Sparkles className="h-4 w-4 text-amber-300" />
       });
     } else if (campaign.includes('shoulder') || campaign.includes('tension')) {
@@ -38,7 +38,7 @@ export default function TopBanner() {
   }, [location]);
 
   return (
-    <div className="bg-led-red text-white py-2.5 px-4 text-center font-bold text-xs tracking-wide flex items-center justify-center gap-2 relative z-50 shadow-md">
+    <div className="bg-brand-teal text-white py-2.5 px-4 text-center font-bold text-xs tracking-wide flex items-center justify-center gap-2 relative z-50 shadow-md">
       {messaging.icon}
       <span>{messaging.text}</span>
     </div>

@@ -10,7 +10,7 @@ export default function TermsOfService() {
 
         <h2 className="text-2xl font-bold mt-8 mb-4">1. Introduction</h2>
         <p>
-          Welcome to TheraPulse Technologies Inc. These Terms of Service ("Terms") govern your use of our website and services. By accessing or using our website, you agree to be bound by these Terms and our Privacy Policy.
+          Welcome to Lumively Inc. These Terms of Service ("Terms") govern your use of our website and services. By accessing or using our website, you agree to be bound by these Terms and our Privacy Policy.
         </p>
 
         <h2 className="text-2xl font-bold mt-8 mb-4">2. Use of Our Site</h2>
@@ -36,7 +36,7 @@ export default function TermsOfService() {
           We do not guarantee, represent or warrant that your use of our service will be uninterrupted, timely, secure or error-free. Our products are provided 'as is' without any representations, warranties, or conditions of any kind, either express or implied.
         </p>
         <p>
-          In no case shall TheraPulse Technologies Inc., our directors, officers, employees, affiliates, agents, contractors, interns, suppliers, service providers or licensors be liable for any injury, loss, claim, or any direct, indirect, incidental, punitive, special, or consequential damages of any kind.
+          In no case shall Lumively Inc., our directors, officers, employees, affiliates, agents, contractors, interns, suppliers, service providers or licensors be liable for any injury, loss, claim, or any direct, indirect, incidental, punitive, special, or consequential damages of any kind.
         </p>
         <p className="font-semibold text-red-600 mt-2">
           Medical Disclaimer: The products sold on this site are not intended to diagnose, treat, cure, or prevent any disease. Please consult with a healthcare professional before use.
@@ -49,7 +49,7 @@ export default function TermsOfService() {
 
         <h2 className="text-2xl font-bold mt-8 mb-4">7. Contact Information</h2>
         <p>
-          Questions about the Terms of Service should be sent to us at support@therapulse.com.
+          Questions about the Terms of Service should be sent to us at support@lumively.com.
         </p>
       </div>
     </div>

@@ -145,7 +145,7 @@ router.post('/capture-order', async (req, res) => {
           shippingCountryCode: customerData.countryCode || 'US',
           shippingCountry: customerData.countryCode || 'United States',
           shippingPhone: customerData.phone || '',
-          remark: 'TheraPulse Dropship Order',
+          remark: 'Lumively Dropship Order',
           payType: '2',
           orderFlow: 1,
           products: orderItemsData.map((item, i) => ({

@@ -7,7 +7,7 @@ export default function CheckoutSuccess() {
   const [searchParams] = useSearchParams();
   const value = searchParams.get('value') || '139.00';
   const currency = searchParams.get('currency') || 'USD';
-  const orderId = searchParams.get('order_id') || `TP-${Math.floor(Math.random() * 900000) + 100000}`;
+  const orderId = searchParams.get('order_id') || `LV-${Math.floor(Math.random() * 900000) + 100000}`;
 
   const [pixelLogs, setPixelLogs] = useState([]);
   const logger = createLogger('ConversionPixels');
@@ -74,7 +74,7 @@ export default function CheckoutSuccess() {
           <p className="text-xs text-emerald-600 font-bold uppercase tracking-widest font-mono">Dynamic tracking codes executed</p>
         </div>
         <p className="text-xs text-ash-gray font-normal">
-          Your payment has been authorized and securely routed to TheraPulse fulfillment for dispatch. An order receipt has been sent to your registered email and phone number.
+          Your payment has been authorized and securely routed to Lumively fulfillment for dispatch. An order receipt has been sent to your registered email and phone number.
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export default function CheckoutSuccess() {
             </div>
             <div className="flex justify-between">
               <span>Fulfillment Node</span>
-              <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/50">TheraPulse Fulfillment</span>
+              <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100/50">Lumively Fulfillment</span>
             </div>
           </div>
           

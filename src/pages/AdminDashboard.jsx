@@ -8,7 +8,7 @@ import { isAdminAuthenticated, loginAdmin, logoutAdmin } from '../utils/auth';
 const INITIAL_SKUS = [
   {
     id: '1798542129166426112',
-    name: 'TheraPulse Clinical LED Mask',
+    name: 'Lumively Clinical LED Mask',
     sku: 'TP-MASK-01',
     supplierSku: 'CJ-1798542129166426112',
     cost: 45.00,
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
           </form>
           
           <div className="mt-8 text-center border-t border-slate-100 pt-6">
-            <p className="text-[10px] text-slate-400 font-mono">TheraPulse Control Center v2.1.0</p>
+            <p className="text-[10px] text-slate-400 font-mono">Lumively Control Center v2.1.0</p>
           </div>
         </div>
       </div>

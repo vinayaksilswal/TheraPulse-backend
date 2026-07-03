@@ -13,11 +13,11 @@ const faqData = [
 
   {
     question: 'Is the mask wireless and travel-friendly?',
-    answer: 'Yes, it is completely wireless. Unlike rigid plastic masks that require being plugged into a wall outlet, TheraPulse has a built-in medical-grade rechargeable battery. A single USB-C charge gives you up to 10 sessions (100 minutes), allowing you to move around, work, or relax wire-free.'
+    answer: 'Yes, it is completely wireless. Unlike rigid plastic masks that require being plugged into a wall outlet, Lumively has a built-in medical-grade rechargeable battery. A single USB-C charge gives you up to 10 sessions (100 minutes), allowing you to move around, work, or relax wire-free.'
   },
   {
-    question: 'How does the 60-Day Results Guarantee work?',
-    answer: 'We want you to buy with absolute confidence. Use the TheraPulse mask consistently for 10 minutes a day. If you do not see visible improvements in your skin tone, wrinkle depth, or acne clearance within 60 days, email our clinical support team for a full refund. We even provide a free return shipping label.'
+    question: 'How does the 30-Day Results Guarantee work?',
+    answer: 'We want you to buy with absolute confidence. Use the Lumively mask consistently for 10 minutes a day. If you do not see visible improvements in your skin tone, wrinkle depth, or acne clearance within 30 days, email our support team for a full refund. We even provide a free return shipping label.'
   }
 ];
 

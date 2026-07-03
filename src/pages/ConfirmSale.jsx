@@ -8,7 +8,7 @@ export default function ConfirmSale() {
   
   // Parse order info from query parameters
   const orderId = searchParams.get('order_id') || `TP-ORD-${Math.floor(Math.random() * 9000000) + 1000000}`;
-  const productName = searchParams.get('name') || 'TheraPulse Clinical Therapy Device';
+  const productName = searchParams.get('name') || 'Lumively Clinical Therapy Device';
   const pid = searchParams.get('pid') || 'CJ-MASK-B101';
   const price = parseFloat(searchParams.get('price') || '129.00');
   const qty = parseInt(searchParams.get('qty') || '1', 10);
@@ -81,7 +81,7 @@ export default function ConfirmSale() {
             <ShieldCheck className="h-4 w-4" />
             Merchant Gateway Authorization
           </div>
-          <h1 className="text-3xl md:text-4xl font-black text-obsidian tracking-tight">TheraPulse Sale Confirmation</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-obsidian tracking-tight">Lumively Sale Confirmation</h1>
           <p className="text-xs md:text-sm text-ash-gray font-normal max-w-xl">
             Authorize fulfillment charges and dispatch products from warehouses directly to the customer.
           </p>

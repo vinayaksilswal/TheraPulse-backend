@@ -1,5 +1,5 @@
 /**
- * TheraPulse Input Validation & Sanitization Utilities
+ * Lumively Input Validation & Sanitization Utilities
  * 
  * Enterprise-grade validators for checkout forms, product data,
  * and API payloads. Designed to prevent XSS, injection attacks,

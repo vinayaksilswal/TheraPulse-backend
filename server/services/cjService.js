@@ -155,7 +155,7 @@ export const queryCJProduct = async (pid) => {
         data.nameEn ||
         (Array.isArray(data.productName) ? data.productName.join(' ') : data.productName) ||
         '';
-      const productName = rawName.replace(/CJ Dropshipping|CJ/gi, 'TheraPulse').trim();
+      const productName = rawName.replace(/CJ Dropshipping|CJ/gi, 'Lumively').trim();
 
       const cleanDesc = data.description
         ? containsHtml(data.description)
@@ -225,8 +225,8 @@ export const queryCJProduct = async (pid) => {
 export const getProductVariants = async (pid) => {
   if (pid === '1798542129166426112') {
     const baseVariants = [
-      { vid: 'mask-standard', pid: '1798542129166426112', variantKey: 'Standard', variantNameEn: 'TheraPulse Clinical LED Mask (Standard)', sellPrice: 139.99 },
-      { vid: 'mask-premium', pid: '1798542129166426112', variantKey: 'Premium Bundle', variantNameEn: 'TheraPulse Clinical LED Mask + Travel Case', sellPrice: 169.99 },
+      { vid: 'mask-standard', pid: '1798542129166426112', variantKey: 'Standard', variantNameEn: 'Lumively Clinical LED Mask (Standard)', sellPrice: 139.99 },
+      { vid: 'mask-premium', pid: '1798542129166426112', variantKey: 'Premium Bundle', variantNameEn: 'Lumively Clinical LED Mask + Travel Case', sellPrice: 169.99 },
     ];
     return { success: true, variants: baseVariants };
   }

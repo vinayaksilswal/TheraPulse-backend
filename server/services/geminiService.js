@@ -128,12 +128,12 @@ export const generateLocalFallbackCopy = (productName, rawDescription) => {
     .replace(/Photon/gi, '')
     .replace(/Skin Rejuvenation/gi, 'Skin Rejuvenation Mask')
     .replace(/LED/gi, 'LED')
-    .replace(/CJ Dropshipping|CJ/gi, 'TheraPulse')
+    .replace(/CJ Dropshipping|CJ/gi, 'Lumively')
     .replace(/\s+/g, ' ')
     .trim();
 
-  if (!title.toLowerCase().includes('therapulse')) {
-    title = `TheraPulse ${title}`;
+  if (!title.toLowerCase().includes('lumively')) {
+    title = `Lumively ${title}`;
   }
 
   title = title
@@ -179,7 +179,7 @@ export const generateProductCopy = async (productName, rawDescription, productId
   const safeName = sanitizeForPrompt(productName);
   const safeDesc = sanitizeForPrompt(cleanDesc);
 
-  const prompt = `You are a world-class e-commerce copywriter and conversion rate optimization (CRO) expert for TheraPulse, a premium, clinical-grade health, wellness, and advanced skincare brand.
+  const prompt = `You are a world-class e-commerce copywriter and conversion rate optimization (CRO) expert for Lumively, a premium, clinical-grade health, wellness, and advanced skincare brand.
 
 Your task is to write highly persuasive, high-converting, and premium copywriting for the product details below.
 The brand voice is: authoritative, empathetic, science-backed, premium, and results-oriented.

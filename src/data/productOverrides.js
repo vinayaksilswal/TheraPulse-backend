@@ -1,27 +1,27 @@
 export const productOverrides = {
-  // TheraPulse™ Heated Electric Pulse Neck & Shoulder Massager
+  // Lumively™ Heated Electric Pulse Neck & Shoulder Massager
   '1565182475423461376': {
-    productName: 'TheraPulse™ Heated Electric Pulse Neck & Shoulder Massager',
+    productName: 'Lumively™ Heated Electric Pulse Neck & Shoulder Massager',
     description: `
       <div class="space-y-6 text-gray-700 leading-relaxed font-sans">
         <h2 class="text-2xl font-extrabold text-gray-900 mb-4 border-b pb-2">Unwind Like Never Before.</h2>
-        <p class="text-lg">Experience the pinnacle of relaxation with the <strong>TheraPulse™ Heated Electric Pulse Neck & Shoulder Massager</strong>. Designed for modern lifestyles, this enterprise-grade device combines deep-tissue electrical muscle stimulation (EMS) with soothing thermotherapy to instantly melt away stress, stiffness, and chronic neck pain.</p>
+        <p class="text-lg">Experience the pinnacle of relaxation with the <strong>Lumively™ Heated Electric Pulse Neck & Shoulder Massager</strong>. Designed for modern lifestyles, this enterprise-grade device combines deep-tissue electrical muscle stimulation (EMS) with soothing thermotherapy to instantly melt away stress, stiffness, and chronic neck pain.</p>
         
         <h3 class="text-xl font-bold text-gray-900 mt-6">Why It's A Game Changer:</h3>
         <ul class="list-none space-y-3">
-          <li class="flex items-start"><span class="text-red-500 font-bold mr-2">✓</span><strong>TENS & EMS Technology:</strong> Penetrates deep into muscle fibers to relieve tension at the source.</li>
-          <li class="flex items-start"><span class="text-red-500 font-bold mr-2">✓</span><strong>Rapid Heating System:</strong> Delivers consistent, comforting warmth (107°F/42°C) to improve blood circulation and soothe sore muscles in seconds.</li>
-          <li class="flex items-start"><span class="text-red-500 font-bold mr-2">✓</span><strong>Ergonomic U-Shape Design:</strong> Flexibly adapts to any neck size for a snug, secure fit, allowing you to move freely while enjoying your massage.</li>
-          <li class="flex items-start"><span class="text-red-500 font-bold mr-2">✓</span><strong>Multiple Modes & Intensities:</strong> Customize your therapy with 4 massage modes (Acupuncture, Kneading, Tapping, Auto) and 15 intensity levels.</li>
+          <li class="flex items-start"><span class="text-teal-500 font-bold mr-2">✓</span><strong>TENS & EMS Technology:</strong> Penetrates deep into muscle fibers to relieve tension at the source.</li>
+          <li class="flex items-start"><span class="text-teal-500 font-bold mr-2">✓</span><strong>Rapid Heating System:</strong> Delivers consistent, comforting warmth (107°F/42°C) to improve blood circulation and soothe sore muscles in seconds.</li>
+          <li class="flex items-start"><span class="text-teal-500 font-bold mr-2">✓</span><strong>Ergonomic U-Shape Design:</strong> Flexibly adapts to any neck size for a snug, secure fit, allowing you to move freely while enjoying your massage.</li>
+          <li class="flex items-start"><span class="text-teal-500 font-bold mr-2">✓</span><strong>Multiple Modes & Intensities:</strong> Customize your therapy with 4 massage modes (Acupuncture, Kneading, Tapping, Auto) and 15 intensity levels.</li>
         </ul>
 
         <h3 class="text-xl font-bold text-gray-900 mt-6">Professional Therapy, Anywhere.</h3>
-        <p>Whether you're hunched over a desk all day, recovering from a tough workout, or simply need a moment of tranquility, the TheraPulse™ Massager is your personal, on-demand physical therapist. Its lightweight, cordless design makes it perfect for home, office, or travel.</p>
+        <p>Whether you're hunched over a desk all day, recovering from a tough workout, or simply need a moment of tranquility, the Lumively™ Massager is your personal, on-demand physical therapist. Its lightweight, cordless design makes it perfect for home, office, or travel.</p>
         
         <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mt-6">
           <p class="font-bold text-gray-900">What's in the Box:</p>
           <ul class="list-disc pl-5 mt-2 space-y-1 text-sm">
-            <li>1x TheraPulse™ Neck Massager</li>
+            <li>1x Lumively™ Neck Massager</li>
             <li>1x USB Charging Cable</li>
             <li>1x Remote Control</li>
             <li>1x User Manual</li>
@@ -33,9 +33,9 @@ export const productOverrides = {
     tagline: 'Melt away neck tension in just 15 minutes a day.'
   },
 
-  // TheraPulse™ Desktop Air Cooler & Humidifier
+  // Lumively™ Desktop Air Cooler & Humidifier
   '1791004533888389120': {
-    productName: 'TheraPulse™ Desktop Air Cooler & Humidifier',
+    productName: 'Lumively™ Desktop Air Cooler & Humidifier',
     productImage: 'https://oss-cf.cjdropshipping.com/product/2024/05/16/07/cc3e5d2e-fd0c-4089-980e-091a329326d4_trans.jpeg',
     productImages: [
       'https://oss-cf.cjdropshipping.com/product/2024/05/16/07/cc3e5d2e-fd0c-4089-980e-091a329326d4_trans.jpeg',
@@ -47,7 +47,7 @@ export const productOverrides = {
     description: `
       <div class="space-y-6 text-gray-700 leading-relaxed font-sans">
         <h2 class="text-2xl font-extrabold text-gray-900 mb-4 border-b pb-2">Your Personal Oasis of Cool.</h2>
-        <p class="text-lg">Beat the heat and dry air simultaneously with the <strong>TheraPulse™ Desktop Air Cooler & Humidifier</strong>. This is not just a fan; it's a microclimate control system for your personal space, engineered to deliver an icy breeze and perfectly hydrated air exactly where you need it.</p>
+        <p class="text-lg">Beat the heat and dry air simultaneously with the <strong>Lumively™ Desktop Air Cooler & Humidifier</strong>. This is not just a fan; it's a microclimate control system for your personal space, engineered to deliver an icy breeze and perfectly hydrated air exactly where you need it.</p>
         
         <h3 class="text-xl font-bold text-gray-900 mt-6">Unrivaled Cooling Technology:</h3>
         <ul class="list-none space-y-3">
@@ -58,20 +58,20 @@ export const productOverrides = {
         </ul>
 
         <h3 class="text-xl font-bold text-gray-900 mt-6">Compact, Stylish, and Powerful.</h3>
-        <p>Forget bulky, loud AC units. The sleek, modern design of the TheraPulse™ Air Cooler fits perfectly on any desk, nightstand, or side table. It creates a refreshing sanctuary that improves your focus, comfort, and skin hydration throughout the day.</p>
+        <p>Forget bulky, loud AC units. The sleek, modern design of the Lumively™ Air Cooler fits perfectly on any desk, nightstand, or side table. It creates a refreshing sanctuary that improves your focus, comfort, and skin hydration throughout the day.</p>
       </div>
     `,
     highlights: ['Instant Mist Cooling', 'Whisper-Quiet Fan', 'Portable Desktop Design', 'Air Humidification'],
     tagline: 'Fast cooling and instant hydration for your personal space.'
   },
 
-  // TheraPulse™ Multifunctional 6-Wheel Neck Massager
+  // Lumively™ Multifunctional 6-Wheel Neck Massager
   '1444929719182168064': {
-    productName: 'TheraPulse™ Multifunctional 6-Wheel Neck Massager',
+    productName: 'Lumively™ Multifunctional 6-Wheel Neck Massager',
     description: `
       <div class="space-y-6 text-gray-700 leading-relaxed font-sans">
         <h2 class="text-2xl font-extrabold text-gray-900 mb-4 border-b pb-2">Targeted Relief, In Your Own Hands.</h2>
-        <p class="text-lg">Take complete control of your muscle recovery with the <strong>TheraPulse™ Multifunctional 6-Wheel Neck Massager</strong>. This brilliantly simple yet highly effective manual tool is designed to mimic the firm, precise hands of a professional massage therapist, allowing you to release deep-seated knots and tension instantly.</p>
+        <p class="text-lg">Take complete control of your muscle recovery with the <strong>Lumively™ Multifunctional 6-Wheel Neck Massager</strong>. This brilliantly simple yet highly effective manual tool is designed to mimic the firm, precise hands of a professional massage therapist, allowing you to release deep-seated knots and tension instantly.</p>
         
         <h3 class="text-xl font-bold text-gray-900 mt-6">Why You'll Love It:</h3>
         <ul class="list-none space-y-3">
@@ -89,13 +89,13 @@ export const productOverrides = {
     tagline: 'Deep tissue Shiatsu relief, powered by you.'
   },
 
-  // TheraPulse™ Professional Neck & Shoulder Massager
+  // Lumively™ Professional Neck & Shoulder Massager
   '2507290913441604900': {
-    productName: 'TheraPulse™ Professional Neck & Shoulder Massager',
+    productName: 'Lumively™ Professional Neck & Shoulder Massager',
     description: `
       <div class="space-y-6 text-gray-700 leading-relaxed font-sans">
         <h2 class="text-2xl font-extrabold text-gray-900 mb-4 border-b pb-2">The Ultimate Deep Kneading Experience.</h2>
-        <p class="text-lg">Bring the spa to your living room. The <strong>TheraPulse™ Professional Neck & Shoulder Massager</strong> delivers a remarkably lifelike, vigorous 3D Shiatsu massage that deeply penetrates tight, aching muscles to restore your body's natural balance and vitality.</p>
+        <p class="text-lg">Bring the spa to your living room. The <strong>Lumively™ Professional Neck & Shoulder Massager</strong> delivers a remarkably lifelike, vigorous 3D Shiatsu massage that deeply penetrates tight, aching muscles to restore your body's natural balance and vitality.</p>
         
         <h3 class="text-xl font-bold text-gray-900 mt-6">Exceptional Features:</h3>
         <ul class="list-none space-y-3">
@@ -113,13 +113,13 @@ export const productOverrides = {
     tagline: 'Professional 3D kneading massage for deep, lasting relief.'
   },
 
-  // TheraPulse™ Clinical Eye Massager
+  // Lumively™ Clinical Eye Massager
   '1783744478788988928': {
-    productName: 'TheraPulse™ Clinical Eye Massager',
+    productName: 'Lumively™ Clinical Eye Massager',
     description: `
       <div class="space-y-6 text-gray-700 leading-relaxed font-sans">
         <h2 class="text-2xl font-extrabold text-gray-900 mb-4 border-b pb-2">Revitalize Your Eyes. Reclaim Your Focus.</h2>
-        <p class="text-lg">Screen time, stress, and lack of sleep take a heavy toll on your eyes. The <strong>TheraPulse™ Clinical Eye Massager</strong> is an intelligent, spa-grade device designed to instantly relieve eye strain, reduce dark circles, and help you drift into a deep, restorative sleep.</p>
+        <p class="text-lg">Screen time, stress, and lack of sleep take a heavy toll on your eyes. The <strong>Lumively™ Clinical Eye Massager</strong> is an intelligent, spa-grade device designed to instantly relieve eye strain, reduce dark circles, and help you drift into a deep, restorative sleep.</p>
         
         <h3 class="text-xl font-bold text-gray-900 mt-6">Intelligent Therapy Features:</h3>
         <ul class="list-none space-y-3">
@@ -137,13 +137,13 @@ export const productOverrides = {
     tagline: 'Banish eye strain and dark circles with intelligent compression.'
   },
 
-  // TheraPulse™ Clinical LED Mask
+  // Lumively™ Clinical LED Mask
   '1798542129166426112': {
-    productName: 'TheraPulse™ Clinical LED Mask',
+    productName: 'Lumively™ Clinical LED Mask',
     description: `
       <div class="space-y-6 text-gray-700 leading-relaxed font-sans">
         <h2 class="text-2xl font-extrabold text-gray-900 mb-4 border-b pb-2">The Future of Flawless Skin.</h2>
-        <p class="text-lg">Stop paying thousands for clinical dermatology treatments. The <strong>TheraPulse™ Clinical LED Mask</strong> harnesses the proven power of medical-grade light therapy to target acne, wrinkles, pigmentation, and dullness—all from the comfort of your own home.</p>
+        <p class="text-lg">Stop paying thousands for clinical dermatology treatments. The <strong>Lumively™ Clinical LED Mask</strong> harnesses the proven power of medical-grade light therapy to target acne, wrinkles, pigmentation, and dullness—all from the comfort of your own home.</p>
         
         <h3 class="text-xl font-bold text-gray-900 mt-6">Clinical Spectrum Technology:</h3>
         <ul class="list-none space-y-3">

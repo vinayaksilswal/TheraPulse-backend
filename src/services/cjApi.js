@@ -165,13 +165,13 @@ export const disconnectCJ = () => {
 
 // ─── Storefront Product Database ────────────────────────────────────
 
-const STOREFRONT_PRODUCTS_KEY = 'therapulse_storefront_products';
-const IMPORTED_KEY = 'therapulse_imported_products';
+const STOREFRONT_PRODUCTS_KEY = 'lumively_storefront_products';
+const IMPORTED_KEY = 'lumively_imported_products';
 
 const MOCK_PRODUCTS = [
   {
     pid: '1798542129166426112',
-    productName: 'TheraPulse Clinical LED Mask',
+    productName: 'Lumively Clinical LED Mask',
     productSku: 'TP-CJ-CJPF2054402',
     sellPrice: 139.99,
     originalPrice: 199.99,

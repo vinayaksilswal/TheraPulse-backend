@@ -1,5 +1,5 @@
 /**
- * TheraPulse API Retry & Circuit Breaker Utility
+ * Lumively API Retry & Circuit Breaker Utility
  * 
  * Provides resilient HTTP fetch with:
  * - Configurable exponential backoff with jitter

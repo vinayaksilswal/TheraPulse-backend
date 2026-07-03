@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
       const seeded = await prisma.product.create({
         data: {
           pid: '1798542129166426112',
-          productName: 'TheraPulse Clinical LED Mask',
+          productName: 'Lumively Clinical LED Mask',
           productSku: 'TP-CJ-CJPF2054402',
           sellPrice: 139.99,
           originalPrice: 199.99,

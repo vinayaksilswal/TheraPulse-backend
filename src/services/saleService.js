@@ -1,5 +1,5 @@
 /**
- * TheraPulse Sale & Fulfillment Service (Production-Hardened)
+ * Lumively Sale & Fulfillment Service (Production-Hardened)
  * 
  * Manages sale records with:
  * - Atomic validation before persistence
@@ -14,7 +14,7 @@ import { toCents, toDollarNumber, calculateMarginPercent, calculateCartTotal } f
 import { sanitizeString } from '../utils/validators.js';
 
 const logger = createLogger('SaleService');
-const SALES_KEY = 'therapulse_sales_records';
+const SALES_KEY = 'lumively_sales_records';
 
 /**
  * Valid sale status transitions

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ShoppingCart, Eye, Star, Activity, Sparkles, RefreshCw, AlertCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getCJProducts } from '../services/cjApi';
 import { stripHtml, containsHtml } from '../services/geminiService';
 import { calculateSavePercent } from '../utils/pricing';
+import { getAverageRating } from '../services/reviewService';
 
 const CatalogCard = ({ product, onAddToCart }) => {
+  const navigate = useNavigate();
   const id = product.pid;
   const title = product.productName;
   const displayPrice = parseFloat(product.sellPrice || 0);
@@ -15,12 +17,13 @@ const CatalogCard = ({ product, onAddToCart }) => {
   const rawDesc = product.description || '';
   const desc = containsHtml(rawDesc) ? stripHtml(rawDesc) : rawDesc;
   
-  const rating = 4.8;
-  // Stable review count: seeded from product ID hash (not random per render)
-  const reviewsCount = useMemo(() => {
+  const ratingData = useMemo(() => getAverageRating(id), [id]);
+  const rating = ratingData.count > 0 ? ratingData.average : 4.8;
+  const fallbackCount = useMemo(() => {
     const hash = (id || '').split('').reduce((acc, c) => ((acc << 5) - acc) + c.charCodeAt(0), 0);
     return 50 + Math.abs(hash % 500);
   }, [id]);
+  const reviewsCount = ratingData.count > 0 ? ratingData.count : fallbackCount;
   const tag = product.categoryName || 'Premium Care';
   const badgeColor = 'bg-purple-50 text-led-purple border-purple-100/60';
   
@@ -28,7 +31,8 @@ const CatalogCard = ({ product, onAddToCart }) => {
 
   return (
     <div 
-      className="bg-white border border-slate-200 p-5 rounded-2xl flex flex-col justify-between hover:border-slate-300 hover:shadow-md transition-all duration-300 group relative shadow-sm"
+      onClick={() => navigate(`/product/${id}`)}
+      className="bg-white border border-slate-200 p-5 rounded-2xl flex flex-col justify-between hover:border-slate-300 hover:shadow-md transition-all duration-300 group relative shadow-sm cursor-pointer"
     >
       <span className={`absolute top-4 left-4 border px-3 py-1 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider z-10 ${badgeColor}`}>
         {tag}
@@ -71,13 +75,15 @@ const CatalogCard = ({ product, onAddToCart }) => {
       <div className="grid grid-cols-2 gap-3 mt-auto select-none">
         <Link
           to={`/product/${id}`}
+          onClick={(e) => e.stopPropagation()}
           className="py-3 rounded-xl border border-slate-200 hover:border-slate-300 text-center text-xs font-bold text-obsidian flex items-center justify-center gap-2 hover:bg-slate-50 transition-all duration-200"
         >
           <Eye className="w-4 h-4" />
           Details
         </Link>
         <button
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             onAddToCart({
               id,
               pid: id,
@@ -150,7 +156,7 @@ export default function ProductsCatalog({ onAddToCart }) {
             <Activity className="h-3.5 w-3.5 text-led-red" />
             Complete Skincare Range
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-obsidian tracking-tight">The TheraPulse Catalog</h1>
+          <h1 className="text-3xl md:text-5xl font-black text-obsidian tracking-tight">The Lumively Collection</h1>
           <p className="text-sm md:text-base text-ash-gray font-normal max-w-2xl leading-relaxed">
             Upgrade your daily skincare regime with our medical-grade biohacking devices and synergized conductive serums. Every product is backed by clinical dermatology research.
           </p>

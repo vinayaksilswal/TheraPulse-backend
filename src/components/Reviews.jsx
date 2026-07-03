@@ -9,7 +9,7 @@ const reviewsData = [
     category: 'anti-aging',
     rating: 5,
     title: 'Visible results in under a month',
-    review: 'I was skeptical about at-home red light, but within 3 weeks of using the TheraPulse mask daily, the fine lines around my eyes have visibly softened. My skin feels plumper, and it is so relaxing. Incredible quality.',
+    review: 'I was skeptical about at-home red light, but within 3 weeks of using the Lumively mask daily, the fine lines around my eyes have visibly softened. My skin feels plumper, and it is so relaxing. Incredible quality.',
     date: '2 days ago',
     verified: true
   },
@@ -75,7 +75,7 @@ export default function Reviews() {
             Loved by 1,200+ Skincare Biohackers
           </p>
           <p className="text-ash-gray font-light text-sm">
-            Read real feedback from verified customers, dermatologist clinics, and skincare professionals who have made TheraPulse a core part of their daily routine.
+            Read real feedback from verified customers, dermatologist clinics, and skincare professionals who have made Lumively a core part of their daily routine.
           </p>
         </div>
 

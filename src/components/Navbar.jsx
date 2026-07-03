@@ -1,54 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, X, Menu, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShoppingBag, X, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-// Countdown timer: resets at midnight UTC each day
-function useCountdown() {
-  const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
-
-  useEffect(() => {
-    const calcTimeLeft = () => {
-      const now = new Date();
-      const midnight = new Date(now);
-      midnight.setHours(23, 59, 59, 999);
-      const diff = midnight - now;
-      if (diff <= 0) return { h: 0, m: 0, s: 0 };
-      return {
-        h: Math.floor(diff / (1000 * 60 * 60)),
-        m: Math.floor((diff / (1000 * 60)) % 60),
-        s: Math.floor((diff / 1000) % 60),
-      };
-    };
-    setTimeLeft(calcTimeLeft());
-    const timer = setInterval(() => setTimeLeft(calcTimeLeft()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return timeLeft;
-}
 
 export default function Navbar({ cartCount, onCartOpen, onCheckoutClick }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const countdown = useCountdown();
-
-  const pad = (n) => String(n).padStart(2, '0');
 
   return (
     <header className="w-full z-40 relative">
-      {/* Promo Bar with Countdown */}
+      {/* Clean Trust Bar — No Fake Countdown */}
       <div className="bg-gradient-to-r from-slate-900 via-slate-950 to-slate-900 border-b border-slate-800/20 text-xs py-2.5 px-4 text-center">
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-led-red opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-led-red"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-teal opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-teal"></span>
           </span>
           <span className="font-semibold tracking-wider text-white">
-            FREE EXPRESS SHIPPING + 60-DAY GUARANTEE
-          </span>
-          <span className="text-white/40">|</span>
-          <span className="inline-flex items-center gap-1.5 text-amber-400 font-bold">
-            <Clock className="h-3 w-3" />
-            <span className="countdown-digit">Sale ends in {pad(countdown.h)}:{pad(countdown.m)}:{pad(countdown.s)}</span>
+            FREE EXPRESS SHIPPING + 30-DAY MONEY-BACK GUARANTEE
           </span>
         </div>
         {/* Trust micro-strip */}
@@ -64,8 +31,8 @@ export default function Navbar({ cartCount, onCartOpen, onCheckoutClick }) {
       {/* Main Header */}
       <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 py-4 px-6 md:px-12 flex items-center justify-between">
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2 select-none">
-          <img src="/logo.png" alt="TheraPulse Logo" className="h-12 md:h-16 object-contain transition-all hover:opacity-90" />
+        <Link to="/" className="flex items-center gap-2 select-none ml-[50px]">
+          <img src="/logo.png" alt="Lumively Logo" className="h-8 md:h-10 object-contain transition-all hover:opacity-90" />
         </Link>
 
         {/* Right Side: Nav + Actions */}
@@ -79,26 +46,26 @@ export default function Navbar({ cartCount, onCartOpen, onCheckoutClick }) {
           {/* Action Buttons */}
           <div className="flex items-center gap-4">
             {/* Cart Icon */}
-            <button 
+            <button
               onClick={onCartOpen}
               className="relative p-2 rounded-full border border-slate-200 hover:border-slate-300 bg-slate-50 text-obsidian hover:text-slate-900 transition-all duration-200"
             >
               <ShoppingBag className="h-4.5 w-4.5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-led-red text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center border border-white animate-pulse-slow">
+                <span className="absolute -top-1.5 -right-1.5 bg-brand-teal text-white text-[10px] font-black h-5 w-5 rounded-full flex items-center justify-center border border-white animate-pulse-slow">
                   {cartCount}
                 </span>
               )}
             </button>
 
-            <button 
+            <button
               onClick={onCheckoutClick}
-              className="hidden md:block px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-led-red hover:bg-red-600 text-white transition-all duration-300 transform hover:scale-105 border border-red-500/20 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+              className="hidden md:block px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-teal hover:bg-teal-600 text-white transition-all duration-300 transform hover:scale-105 border border-teal-500/20 hover:shadow-[0_0_15px_rgba(13,148,136,0.3)]"
             >
               Express Checkout
             </button>
 
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden p-2 text-obsidian"
             >
@@ -120,7 +87,7 @@ export default function Navbar({ cartCount, onCartOpen, onCheckoutClick }) {
             </Link>
             <button
               onClick={() => { setIsMobileMenuOpen(false); onCheckoutClick(); }}
-              className="mt-2 py-3 px-4 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-colors text-center"
+              className="mt-2 py-3 px-4 rounded-xl text-sm font-bold text-white bg-brand-teal hover:bg-teal-600 transition-colors text-center"
             >
               Express Checkout
             </button>

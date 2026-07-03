@@ -5,38 +5,38 @@ export default function Comparison() {
   const comparisonData = [
     {
       feature: 'Retail Price',
-      therapulse: '$139.00 (One-time)',
+      lumively: '$139.00 (One-time)',
       inclinic: '$1,500+/year (Ongoing)',
       cheapcomp: '$39.00 (Fragile)',
       isHighlight: true
     },
     {
       feature: 'Mask Material',
-      therapulse: 'Medical-Grade Soft Silicone',
+      lumively: 'Medical-Grade Soft Silicone',
       inclinic: 'Professional Clinical Device',
       cheapcomp: 'Rigid Heavy Plastic'
     },
     {
       feature: 'Clinical Wavelengths',
-      therapulse: '3 Wavelengths (633nm, 830nm, 415nm)',
+      lumively: '3 Wavelengths (633nm, 830nm, 415nm)',
       inclinic: 'Varies by clinic tech',
       cheapcomp: 'Unverified standard LEDs'
     },
     {
       feature: 'Wireless & Portable',
-      therapulse: 'Yes (USB-Rechargeable)',
+      lumively: 'Yes (USB-Rechargeable)',
       inclinic: 'No (In-office visits only)',
       cheapcomp: 'Requires active wall plugin'
     },
     {
       feature: 'Treatment Convenience',
-      therapulse: '10 mins/day (From your couch)',
+      lumively: '10 mins/day (From your couch)',
       inclinic: 'Requires booking & travel',
       cheapcomp: 'Rigid, heavy, uncomfortable'
     },
     {
       feature: 'Results Warranty',
-      therapulse: '1-Year Warranty & 60-Day Guarantee',
+      lumively: '1-Year Warranty & 30-Day Guarantee',
       inclinic: 'No guarantees offered',
       cheapcomp: 'No warranty, 14-day return'
     }
@@ -50,7 +50,7 @@ export default function Comparison() {
           Anchored in Science. Priced for Accessibility.
         </p>
         <p className="text-ash-gray font-light text-sm">
-          Why pay clinical markup when you can access the exact same wavelengths at home? See how TheraPulse compares to in-clinic therapies and budget models.
+          Why pay clinical markup when you can access the exact same wavelengths at home? See how Lumively compares to in-clinic therapies and budget models.
         </p>
       </div>
 
@@ -61,11 +61,11 @@ export default function Comparison() {
             <tr className="border-b border-slate-200">
               <th className="py-6 font-bold text-ash-gray text-xs uppercase tracking-wider w-[28%]">Comparison Spec</th>
               
-              {/* TheraPulse Column Header */}
+              {/* Lumively Column Header */}
               <th className="py-6 px-4 relative w-[26%] bg-rose-50/40 border-t border-x border-rose-200 rounded-t-2xl text-center">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-led-red rounded-t-full shadow-[0_0_10px_#EF4444]"></div>
-                <div className="font-extrabold text-lg text-obsidian tracking-wide">TheraPulse</div>
-                <div className="text-[10px] text-led-red font-mono font-black uppercase tracking-widest mt-0.5">Top Choice</div>
+                <div className="font-extrabold text-lg text-obsidian tracking-wide">Lumively</div>
+                <div className="text-[10px] text-brand-teal font-mono font-black uppercase tracking-widest mt-0.5">Top Choice</div>
               </th>
 
               <th className="py-6 px-4 text-center text-ash-gray text-xs uppercase font-bold w-[23%]">In-Clinic Visits</th>
@@ -81,7 +81,7 @@ export default function Comparison() {
                   {row.feature}
                 </td>
 
-                {/* TheraPulse Spec */}
+                {/* Lumively Spec */}
                 <td className={`py-5 px-4 text-center text-xs md:text-sm font-bold bg-rose-50/20 border-x border-rose-100 ${
                   row.isHighlight ? 'text-led-red text-glow-red text-base' : 'text-obsidian'
                 } ${
@@ -89,7 +89,7 @@ export default function Comparison() {
                 }`}>
                   <div className="flex flex-col items-center justify-center gap-1.5">
                     {!row.isHighlight && <Check className="h-4.5 w-4.5 text-emerald-600 shrink-0 filter drop-shadow-[0_0_4px_rgba(5,150,105,0.2)]" />}
-                    <span>{row.therapulse}</span>
+                    <span>{row.lumively}</span>
                   </div>
                 </td>
 

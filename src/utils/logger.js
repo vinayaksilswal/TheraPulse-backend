@@ -1,5 +1,5 @@
 /**
- * TheraPulse Structured Logging System
+ * Lumively Structured Logging System
  * 
  * Enterprise-grade async logger with log levels, correlation IDs,
  * in-memory ring buffer, and localStorage persistence.
@@ -18,7 +18,7 @@ const LOG_LEVEL_NAMES = Object.freeze(
   Object.fromEntries(Object.entries(LOG_LEVELS).map(([k, v]) => [v, k]))
 );
 
-const LOG_STORAGE_KEY = 'therapulse_structured_logs';
+const LOG_STORAGE_KEY = 'lumively_structured_logs';
 const MAX_BUFFER_SIZE = 500;
 const MAX_PERSISTED_SIZE = 200;
 

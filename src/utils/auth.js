@@ -1,4 +1,4 @@
-export const ADMIN_AUTH_KEY = 'therapulse_admin_auth';
+export const ADMIN_AUTH_KEY = 'lumively_admin_auth';
 
 /**
  * Check if the admin is currently authenticated in this session

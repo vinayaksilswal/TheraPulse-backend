@@ -95,7 +95,7 @@ router.post('/ipn', async (req, res) => {
         shippingCountryCode: customerData.countryCode,
         shippingCountry: customerData.countryCode === 'US' ? 'United States' : customerData.countryCode,
         shippingPhone: customerData.phone,
-        remark: 'TheraPulse WarriorPlus Order',
+        remark: 'Lumively WarriorPlus Order',
         payType: '2',
         orderFlow: 1,
         products: [{

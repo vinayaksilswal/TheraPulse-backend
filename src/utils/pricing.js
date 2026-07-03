@@ -1,5 +1,5 @@
 /**
- * TheraPulse Integer-Cent Pricing Engine
+ * Lumively Integer-Cent Pricing Engine
  * 
  * All internal calculations use integer cents to eliminate
  * IEEE 754 floating-point rounding errors in financial arithmetic.
@@ -75,7 +75,7 @@ export const safeAdd = (centsA, centsB) => {
 };
 
 /**
- * Apply the TheraPulse retail markup pipeline
+ * Apply the Lumively retail markup pipeline
  * Pipeline: wholesaleCost → + $15 shipping buffer → × 2.0 retail multiplier
  * 
  * @param {number|string} wholesalePriceDollars - CJ wholesale cost in dollars

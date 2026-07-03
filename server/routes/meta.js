@@ -37,7 +37,7 @@ export const sendPurchaseEvent = async (data) => {
         event_time: Math.floor(Date.now() / 1000),
         action_source: 'website',
         event_id: eventId || `order_${orderId}`,
-        event_source_url: 'https://therapulse.store/checkout',
+        event_source_url: 'https://lumively.com/checkout',
         user_data: {
           client_ip_address: clientIp,
           client_user_agent: userAgent,

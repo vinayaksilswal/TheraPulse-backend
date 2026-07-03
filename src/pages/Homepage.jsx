@@ -151,15 +151,21 @@ export default function Homepage({ onAddToCart }) {
       {/* Brand Hero */}
       <Hero />
 
-      {/* ━━━ "As Featured In" Media Strip ━━━ */}
+      {/* ━━━ Authentic Trust Metrics ━━━ */}
       <section className="py-8 px-6 border-b border-slate-100 bg-white">
-        <div className="max-w-5xl mx-auto text-center space-y-4">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold">As Featured In</p>
-          <div className="flex items-center justify-center gap-8 md:gap-12 flex-wrap opacity-40">
-            {['Healthline', 'Cosmopolitan', 'Allure', 'Vogue', 'Elle', 'Forbes'].map(name => (
-              <span key={name} className="text-sm md:text-base font-black text-slate-800 tracking-tight select-none media-logo cursor-default" style={{ fontFamily: 'Georgia, serif' }}>
-                {name}
-              </span>
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {[
+              { icon: '🛡️', label: '30-Day Money-Back', sublabel: 'Guarantee' },
+              { icon: '🚚', label: 'Free Tracked Shipping', sublabel: '7-12 Business Days' },
+              { icon: '🔒', label: 'Secure Checkout', sublabel: 'SSL Encrypted' },
+              { icon: '⭐', label: '10,000+ Customers', sublabel: '4.9/5 Average Rating' },
+            ].map((item, i) => (
+              <div key={i} className="flex flex-col items-center text-center gap-1.5 py-3 px-2 rounded-xl border border-slate-100 bg-slate-50/50 hover:shadow-sm transition-all">
+                <span className="text-lg">{item.icon}</span>
+                <span className="text-[10px] font-bold text-slate-800 uppercase tracking-wider leading-tight">{item.label}</span>
+                <span className="text-[9px] text-slate-400 font-medium">{item.sublabel}</span>
+              </div>
             ))}
           </div>
         </div>
@@ -171,7 +177,7 @@ export default function Homepage({ onAddToCart }) {
           {[
             { value: '10,000+', label: 'Happy Customers', icon: <Users className="h-5 w-5 text-red-400" /> },
             { value: '4.9/5', label: 'Average Rating', icon: <Star className="h-5 w-5 text-amber-400 fill-amber-400" /> },
-            { value: '60 Days', label: 'Money-Back Guarantee', icon: <Shield className="h-5 w-5 text-emerald-400" /> },
+            { value: '30 Days', label: 'Money-Back Guarantee', icon: <Shield className="h-5 w-5 text-emerald-400" /> },
             { value: 'Free', label: 'DHL Express Shipping', icon: <Truck className="h-5 w-5 text-blue-400" /> },
           ].map((stat, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
