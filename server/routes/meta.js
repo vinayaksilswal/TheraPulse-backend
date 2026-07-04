@@ -84,4 +84,52 @@ export const sendPurchaseEvent = async (data) => {
   }
 };
 
+router.post('/pageview', async (req, res) => {
+  if (!META_ACCESS_TOKEN) {
+    return res.status(500).json({ error: 'META_ACCESS_TOKEN not configured' });
+  }
+
+  const { eventId, url, fbp, fbc } = req.body;
+  const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const userAgent = req.headers['user-agent'];
+
+  const eventPayload = {
+    data: [
+      {
+        event_name: 'PageView',
+        event_time: Math.floor(Date.now() / 1000),
+        action_source: 'website',
+        event_id: eventId,
+        event_source_url: url,
+        user_data: {
+          client_ip_address: clientIp,
+          client_user_agent: userAgent,
+          fbp: fbp,
+          fbc: fbc
+        }
+      }
+    ]
+  };
+
+  try {
+    const response = await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events?access_token=${META_ACCESS_TOKEN}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventPayload)
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      console.error('[Meta CAPI] Error sending PageView:', result);
+      return res.status(400).json({ error: 'Failed to send PageView' });
+    }
+    
+    console.log(`[Meta CAPI] Successfully sent PageView event (ID: ${eventId})`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[Meta CAPI] Request failed:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;

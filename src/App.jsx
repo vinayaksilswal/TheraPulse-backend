@@ -13,6 +13,8 @@ import TopBanner from './components/TopBanner';
 import { recordSale } from './services/saleService';
 import { calculateCartTotal } from './utils/pricing';
 import { createLogger } from './utils/logger';
+import { trackPageView } from './utils/metaPixel';
+import { useLocation } from 'react-router-dom';
 
 // Lazy-loaded routes (not needed on initial ad-traffic paint)
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -95,6 +97,18 @@ function PageLoader() {
       </div>
     </div>
   );
+}
+
+// ─── Route Tracking ─────────────────────────────────────────────────
+
+function PageTracker() {
+  const location = useLocation();
+
+  React.useEffect(() => {
+    trackPageView(window.location.href);
+  }, [location]);
+
+  return null;
 }
 
 // ─── Main App ───────────────────────────────────────────────────────
@@ -184,6 +198,7 @@ export default function App() {
     <ErrorBoundary>
       <PayPalScriptProvider options={{ 'client-id': import.meta.env.VITE_PAYPAL_CLIENT_ID || 'test', currency: 'USD' }}>
         <BrowserRouter>
+          <PageTracker />
           <ScrollToTop />
           <div className="relative min-h-screen bg-clinical-white text-obsidian selection:bg-led-red selection:text-white">
             
