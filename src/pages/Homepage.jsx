@@ -14,7 +14,18 @@ const FeaturedCard = ({ product, onAddToCart }) => {
   const originalPrice = parseFloat(product.originalPrice || displayPrice * 1.4);
   const imageSrc = product.productImage || '/mask.png';
   const rating = 4.8;
-  const tag = product.categoryName || 'Premium Care';
+  
+  const getDisplayCategory = (p) => {
+    const cat = (p.categoryName || '').toLowerCase();
+    const title = (p.productName || '').toLowerCase();
+    if (title.includes('led') || title.includes('mask') || title.includes('light therapy') || title.includes('photon')) return 'LED Therapy';
+    if (title.includes('massag') || title.includes('recovery') || title.includes('gun') || cat.includes('body care') || cat.includes('massage')) return 'Recovery & Massage';
+    if (cat.includes('skin care') || cat.includes('serum') || cat.includes('beauty') || title.includes('serum') || title.includes('patch') || title.includes('cream')) return 'Skincare & Serums';
+    if (title.includes('humidifier') || title.includes('diffuser') || title.includes('steamer') || title.includes('purifier')) return 'Home Wellness';
+    return 'Premium Care';
+  };
+  const tag = getDisplayCategory(product);
+  
   // Deterministic review count based on product ID
   const reviewCount = (id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 400) + 120;
 

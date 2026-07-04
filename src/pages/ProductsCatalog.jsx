@@ -24,7 +24,18 @@ const CatalogCard = ({ product, onAddToCart }) => {
     return 50 + Math.abs(hash % 500);
   }, [id]);
   const reviewsCount = ratingData.count > 0 ? ratingData.count : fallbackCount;
-  const tag = product.categoryName || 'Premium Care';
+  
+  const getDisplayCategory = (p) => {
+    const cat = (p.categoryName || '').toLowerCase();
+    const title = (p.productName || '').toLowerCase();
+    if (title.includes('led') || title.includes('mask') || title.includes('light therapy') || title.includes('photon')) return 'LED Therapy';
+    if (title.includes('massag') || title.includes('recovery') || title.includes('gun') || cat.includes('body care') || cat.includes('massage')) return 'Recovery & Massage';
+    if (cat.includes('skin care') || cat.includes('serum') || cat.includes('beauty') || title.includes('serum') || title.includes('patch') || title.includes('cream')) return 'Skincare & Serums';
+    if (title.includes('humidifier') || title.includes('diffuser') || title.includes('steamer') || title.includes('purifier')) return 'Home Wellness';
+    return 'Premium Care';
+  };
+  const tag = getDisplayCategory(product);
+  
   const badgeColor = 'bg-purple-50 text-led-purple border-purple-100/60';
   
   const safeSavePercent = calculateSavePercent(originalPrice, displayPrice) || 30;
@@ -104,6 +115,14 @@ const CatalogCard = ({ product, onAddToCart }) => {
   );
 };
 
+const CATEGORIES = [
+  { id: 'all', label: 'All' },
+  { id: 'led', label: 'LED Therapy' },
+  { id: 'recovery', label: 'Recovery & Massage' },
+  { id: 'skincare', label: 'Skincare & Serums' },
+  { id: 'home', label: 'Home Wellness' }
+];
+
 export default function ProductsCatalog({ onAddToCart }) {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -137,10 +156,21 @@ export default function ProductsCatalog({ onAddToCart }) {
     if (selectedCategory === 'all') return products;
     
     return products.filter(p => {
-      const cat = p.categoryName?.toLowerCase() || '';
-      if (selectedCategory === 'devices') return cat.includes('device') || cat.includes('electronic');
-      if (selectedCategory === 'consumables') return !cat.includes('device') && !cat.includes('electronic');
-      return true;
+      const cat = (p.categoryName || '').toLowerCase();
+      const title = (p.productName || '').toLowerCase();
+      
+      switch (selectedCategory) {
+        case 'led':
+          return title.includes('led') || title.includes('mask') || title.includes('light therapy') || title.includes('photon');
+        case 'recovery':
+          return title.includes('massag') || title.includes('recovery') || title.includes('gun') || cat.includes('body care') || cat.includes('massage');
+        case 'skincare':
+          return cat.includes('skin care') || cat.includes('serum') || cat.includes('beauty') || title.includes('serum') || title.includes('patch') || title.includes('cream');
+        case 'home':
+          return title.includes('humidifier') || title.includes('diffuser') || title.includes('steamer') || title.includes('purifier');
+        default:
+          return true;
+      }
     });
   };
 
@@ -165,18 +195,18 @@ export default function ProductsCatalog({ onAddToCart }) {
         {/* Catalog Selector and Filters */}
         <div className="flex flex-col sm:flex-row gap-4 shrink-0">
           {/* Category Filter Controls */}
-          <div className="flex gap-2 select-none">
-            {['all', 'devices', 'consumables'].map((cat) => (
+          <div className="flex flex-wrap gap-2 select-none justify-start lg:justify-end">
+            {CATEGORIES.map((cat) => (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
                 className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-200 border ${
-                  selectedCategory === cat
+                  selectedCategory === cat.id
                     ? 'bg-slate-900 border-slate-900 text-white shadow-sm'
                     : 'border-slate-200 bg-transparent hover:bg-slate-50 text-ash-gray'
                 }`}
               >
-                {cat === 'all' ? 'All' : cat === 'devices' ? 'LED Devices' : 'Serums & Patches'}
+                {cat.label}
               </button>
             ))}
           </div>

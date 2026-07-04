@@ -129,7 +129,7 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
             content_name: formatProductName(productData.productName, id),
             content_ids: [id],
             content_type: 'product',
-            value: productData.sellPrice,
+            value: parseFloat(productData.sellPrice || 0),
             currency: 'USD'
           }, viewEventId);
 
@@ -223,6 +223,14 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
     setMeta('og:description', descText, true);
     setMeta('og:image', imageSrc, true);
     setMeta('og:url', url, true);
+    
+    // Meta Catalog Microdata
+    setMeta('product:brand', 'Lumively', true);
+    setMeta('product:availability', 'in stock', true);
+    setMeta('product:condition', 'new', true);
+    setMeta('product:price:amount', parseFloat(price || product?.sellPrice || 0).toFixed(2), true);
+    setMeta('product:price:currency', 'USD', true);
+    setMeta('product:retailer_item_id', id, true);
     setMeta('twitter:title', titleText);
     setMeta('twitter:description', descText);
     setMeta('twitter:image', imageSrc);
