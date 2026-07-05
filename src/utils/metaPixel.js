@@ -37,7 +37,7 @@ export const trackEvent = (eventName, data = {}, eventId = null) => {
 /**
  * Extracts a cookie value by name
  */
-const getCookie = (name) => {
+export const getCookie = (name) => {
   if (typeof document === 'undefined') return undefined;
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -93,5 +93,40 @@ export const trackPageView = async (url) => {
     });
   } catch (error) {
     console.error('[Meta CAPI] Failed to send PageView to server:', error);
+  }
+};
+
+/**
+ * Fires a ViewContent event on both Client and Server (CAPI) with deduplication
+ */
+export const trackViewContent = async (url, data) => {
+  const eventId = generateEventId();
+  
+  // Track on client (Meta Pixel)
+  trackEvent('ViewContent', data, eventId);
+
+  // Track on server (CAPI)
+  try {
+    const fbp = getCookie('_fbp');
+    const fbc = getFbcFromUrl(url) || getCookie('_fbc');
+    
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    
+    await fetch(`${apiUrl}/meta/viewcontent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventId,
+        url,
+        fbp,
+        fbc,
+        contentName: data.content_name,
+        contentIds: data.content_ids,
+        value: data.value,
+        currency: data.currency
+      })
+    });
+  } catch (error) {
+    console.error('[Meta CAPI] Failed to send ViewContent to server:', error);
   }
 };

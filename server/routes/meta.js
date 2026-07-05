@@ -43,14 +43,14 @@ export const sendPurchaseEvent = async (data) => {
           client_user_agent: userAgent,
           fbp: fbp,
           fbc: fbc,
-          em: [hashData(email)],
-          fn: [hashData(firstName)],
-          ln: [hashData(lastName)],
-          ph: [hashData(phone)],
-          ct: [hashData(city)],
-          st: [hashData(state)],
-          zp: [hashData(zip)],
-          country: [hashData(country)]
+          ...(hashData(email) ? { em: [hashData(email)] } : {}),
+          ...(hashData(firstName) ? { fn: [hashData(firstName)] } : {}),
+          ...(hashData(lastName) ? { ln: [hashData(lastName)] } : {}),
+          ...(hashData(phone) ? { ph: [hashData(phone)] } : {}),
+          ...(hashData(city) ? { ct: [hashData(city)] } : {}),
+          ...(hashData(state) ? { st: [hashData(state)] } : {}),
+          ...(hashData(zip) ? { zp: [hashData(zip)] } : {}),
+          ...(hashData(country) ? { country: [hashData(country)] } : {})
         },
         custom_data: {
           currency: currency || 'USD',
@@ -125,6 +125,61 @@ router.post('/pageview', async (req, res) => {
     }
     
     console.log(`[Meta CAPI] Successfully sent PageView event (ID: ${eventId})`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[Meta CAPI] Request failed:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/viewcontent', async (req, res) => {
+  if (!META_ACCESS_TOKEN) {
+    return res.status(500).json({ error: 'META_ACCESS_TOKEN not configured' });
+  }
+
+  const { eventId, url, fbp, fbc, contentName, contentIds, value, currency } = req.body;
+  const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const userAgent = req.headers['user-agent'];
+
+  const eventPayload = {
+    data: [
+      {
+        event_name: 'ViewContent',
+        event_time: Math.floor(Date.now() / 1000),
+        action_source: 'website',
+        event_id: eventId,
+        event_source_url: url,
+        user_data: {
+          client_ip_address: clientIp,
+          client_user_agent: userAgent,
+          fbp: fbp,
+          fbc: fbc
+        },
+        custom_data: {
+          currency: currency || 'USD',
+          value: parseFloat(value || 0),
+          content_ids: contentIds,
+          content_type: 'product',
+          content_name: contentName
+        }
+      }
+    ]
+  };
+
+  try {
+    const response = await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events?access_token=${META_ACCESS_TOKEN}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventPayload)
+    });
+
+    const result = await response.json();
+    if (!response.ok) {
+      console.error('[Meta CAPI] Error sending ViewContent:', result);
+      return res.status(400).json({ error: 'Failed to send ViewContent' });
+    }
+    
+    console.log(`[Meta CAPI] Successfully sent ViewContent event (ID: ${eventId})`);
     res.json({ success: true });
   } catch (error) {
     console.error('[Meta CAPI] Request failed:', error);

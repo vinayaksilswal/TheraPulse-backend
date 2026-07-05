@@ -58,6 +58,48 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Generate Meta Commerce Manager CSV Data Feed
+router.get('/catalog.csv', async (req, res) => {
+  try {
+    const products = await prisma.product.findMany();
+    
+    // Required Facebook Catalog Headers
+    const headers = [
+      'id', 'title', 'description', 'availability', 'condition', 
+      'price', 'link', 'image_link', 'brand'
+    ];
+    
+    let csv = headers.join(',') + '\n';
+    
+    const escapeCsv = (str) => {
+      if (!str) return '""';
+      return `"${str.toString().replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+    };
+
+    products.forEach(p => {
+      const row = [
+        escapeCsv(p.pid),
+        escapeCsv(p.productName),
+        escapeCsv(p.description ? p.description.substring(0, 5000) : p.productName),
+        'in stock',
+        'new',
+        `${parseFloat(p.sellPrice || 0).toFixed(2)} USD`,
+        escapeCsv(`https://www.lumively.com/product/${p.pid}`),
+        escapeCsv(p.productImage || 'https://www.lumively.com/mask.png'),
+        'Lumively'
+      ];
+      csv += row.join(',') + '\n';
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="facebook_catalog.csv"');
+    res.status(200).send(csv);
+  } catch (error) {
+    console.error('Error generating catalog CSV:', error);
+    res.status(500).send('Error generating catalog feed');
+  }
+});
+
 // Add a new product
 router.post('/', async (req, res) => {
   try {

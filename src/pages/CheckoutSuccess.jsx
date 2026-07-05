@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle2, ShieldCheck, Tag, Code, Activity, ExternalLink } from 'lucide-react';
 import { createLogger } from '../utils/logger';
+import { trackEvent } from '../utils/metaPixel';
 
 export default function CheckoutSuccess() {
   const [searchParams] = useSearchParams();
@@ -17,14 +18,14 @@ export default function CheckoutSuccess() {
     
     // Meta Pixel
     try {
-      logs.push(`[Meta Pixel] Initializing 'fbq' check...`);
+      logs.push(`[Meta Pixel] Firing Purchase event with Deduplication ID: order_${orderId}`);
       if (window.fbq) {
-        window.fbq('track', 'Purchase', {
+        trackEvent('Purchase', {
           value: parseFloat(value),
           currency: currency,
           content_type: 'product',
           order_id: orderId
-        });
+        }, `order_${orderId}`);
         logs.push(`[Meta Pixel] SUCCESS: Fired 'Purchase' Event { value: ${value}, currency: '${currency}', order_id: '${orderId}' }`);
         logger.info('Meta Pixel Purchase event fired', { value, currency, orderId });
       } else {

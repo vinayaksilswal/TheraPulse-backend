@@ -6,6 +6,7 @@ import { recordSale } from '../services/saleService';
 import { validateShippingForm, validatePayPalAmount, sanitizeString } from '../utils/validators';
 import { calculateCartTotal } from '../utils/pricing';
 import { createLogger } from '../utils/logger';
+import { getCookie } from '../utils/metaPixel';
 
 const logger = createLogger('Checkout');
 
@@ -273,7 +274,11 @@ export default function CheckoutDrawer({ isOpen, onClose, cart, clearCart }) {
                                 body: JSON.stringify({
                                   orderID: data.orderID,
                                   cart,
-                                  customerData: formData
+                                  customerData: {
+                                    ...formData,
+                                    fbp: getCookie('_fbp'),
+                                    fbc: getCookie('_fbc')
+                                  }
                                 })
                               });
                               const contentType = res.headers.get('content-type');

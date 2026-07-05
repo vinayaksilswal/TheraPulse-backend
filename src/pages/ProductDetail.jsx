@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, ShoppingCart, Truck, Plus, Minus, Shield, Zap, ChevronLeft, ChevronRight, CheckCircle2, Sparkles, Eye, Clock, Package, Award, Heart, Users, BadgeCheck, ShieldCheck, Lock, Flame, TrendingUp, Play, ChevronDown, CreditCard, RotateCcw, MessageSquare, Activity, ThumbsUp, AlertTriangle } from 'lucide-react';
-import { trackEvent, generateEventId } from '../utils/metaPixel';
+import { trackEvent, generateEventId, trackViewContent } from '../utils/metaPixel';
 import { queryCJProduct, getProductVariants, getCachedToken, getAccessToken } from '../services/cjApi';
 import { extractImagesFromHtml, extractVideosFromHtml, containsHtml, stripHtml } from '../services/geminiService';
 import { getAverageRating } from '../services/reviewService';
@@ -124,14 +124,13 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
           }
 
           // Fire Facebook pixel ViewContent event
-          const viewEventId = generateEventId();
-          trackEvent('ViewContent', {
+          trackViewContent(window.location.href, {
             content_name: formatProductName(productData.productName, id),
             content_ids: [id],
             content_type: 'product',
             value: parseFloat(productData.sellPrice || 0),
             currency: 'USD'
-          }, viewEventId);
+          });
 
         } else {
           setError(res.error || 'Product not found');
