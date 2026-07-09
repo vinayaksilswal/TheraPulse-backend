@@ -135,7 +135,32 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     prisma_client = Prisma()
     os.environ["DATABASE_URL"] = settings.database_url
-    await prisma_client.connect()
+    
+    try:
+        await prisma_client.connect()
+    except Exception as e:
+        import glob
+        import subprocess
+        
+        cache_dir = "/opt/render/.cache/prisma-python/binaries/*/*/"
+        engines = glob.glob(cache_dir + "prisma-query-engine-*")
+        debug_info = f"\\n\\n=== PRISMA DIAGNOSTICS ===\\nEngines in cache: {engines}\\n"
+        
+        if engines:
+            for eng in engines:
+                res = subprocess.run([eng, "-V"], capture_output=True, text=True)
+                debug_info += f"Exec {eng}: code={res.returncode}, out='{res.stdout.strip()}', err='{res.stderr.strip()}'\\n"
+                
+        local_engines = glob.glob("./prisma-query-engine-*")
+        debug_info += f"Local engines: {local_engines}\\n"
+        if local_engines:
+            for eng in local_engines:
+                res = subprocess.run([eng, "-V"], capture_output=True, text=True)
+                debug_info += f"Exec {eng}: code={res.returncode}, out='{res.stdout.strip()}', err='{res.stderr.strip()}'\\n"
+                
+        debug_info += f"Original Error: {e}\\n==========================\\n"
+        raise RuntimeError(debug_info) from e
+
     app.state.prisma = prisma_client
     logger.info("Prisma ORM connected to PostgreSQL")
 
