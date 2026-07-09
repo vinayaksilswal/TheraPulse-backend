@@ -86,7 +86,8 @@ export const sendPurchaseEvent = async (data) => {
 
 router.post('/pageview', async (req, res) => {
   if (!META_ACCESS_TOKEN) {
-    return res.status(500).json({ error: 'META_ACCESS_TOKEN not configured' });
+    console.warn('[Meta CAPI] Skipping PageView: META_ACCESS_TOKEN not configured.');
+    return res.status(200).json({ warning: 'META_ACCESS_TOKEN not configured. Event skipped.' });
   }
 
   const { eventId, url, fbp, fbc } = req.body;
@@ -134,7 +135,8 @@ router.post('/pageview', async (req, res) => {
 
 router.post('/viewcontent', async (req, res) => {
   if (!META_ACCESS_TOKEN) {
-    return res.status(500).json({ error: 'META_ACCESS_TOKEN not configured' });
+    console.warn('[Meta CAPI] Skipping ViewContent: META_ACCESS_TOKEN not configured.');
+    return res.status(200).json({ warning: 'META_ACCESS_TOKEN not configured. Event skipped.' });
   }
 
   const { eventId, url, fbp, fbc, contentName, contentIds, value, currency } = req.body;
