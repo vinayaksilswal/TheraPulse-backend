@@ -136,4 +136,5 @@ model EmailCampaign {
 generator py {
   provider             = "prisma-client-py"
   recursive_type_depth = 5
+  binaryTargets        = ["native", "debian-openssl-3.0.x"]
 }

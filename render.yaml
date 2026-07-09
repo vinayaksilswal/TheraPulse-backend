@@ -84,6 +84,10 @@ services:
       - key: ALLOWED_ORIGINS
         value: '["https://lumively.com","https://www.lumively.com"]'
 
+      # Prisma Cache Directory (ensure binaries persist for runtime)
+      - key: PRISMA_BINARY_CACHE_DIR
+        value: /opt/render/project/src/.prisma
+
 # =============================================================================
 # Managed PostgreSQL Database
 # =============================================================================
