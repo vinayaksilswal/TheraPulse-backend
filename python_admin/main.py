@@ -96,40 +96,31 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     import subprocess
     import sys
     import os
+    import glob
+    import shutil
     logger.info("Ensuring Prisma engine is available at runtime...")
     try:
-        # Force Prisma to download the standalone binary instead of the Node.js library engine
         os.environ["PRISMA_CLIENT_ENGINE_TYPE"] = "binary"
         os.environ["PRISMA_CLI_QUERY_ENGINE_TYPE"] = "binary"
         subprocess.run([sys.executable, "-m", "prisma", "py", "fetch"], check=True)
+        
+        # Prisma Python bug: The engine is downloaded to node_modules/@prisma/engines/
+        # but the python client looks for it in the current directory or node_modules/prisma/
+        cache_dir = "/opt/render/.cache/prisma-python/binaries/*/*/"
+        engines = glob.glob(cache_dir + "node_modules/@prisma/engines/query-engine-*")
+        if engines:
+            engine_path = engines[0]
+            # Copy to python_admin current directory with the "prisma-" prefix it expects
+            expected_name = "prisma-" + os.path.basename(engine_path)
+            shutil.copy(engine_path, expected_name)
+            os.chmod(expected_name, 0o755)
+            logger.info(f"Fixed Prisma path bug: Copied {engine_path} to {expected_name}")
     except Exception as e:
-        logger.error(f"Failed to fetch Prisma engine: {e}")
+        logger.error(f"Failed to fetch/setup Prisma engine: {e}")
 
     prisma_client = Prisma()
     os.environ["DATABASE_URL"] = settings.database_url
-    
-    try:
-        await prisma_client.connect()
-    except Exception as e:
-        import subprocess
-        
-        debug_info = f"\\n\\n=== PRISMA DIAGNOSTICS ===\\n"
-        
-        # Dump all files in the cache to see exactly what was downloaded
-        res_find = subprocess.run(["find", "/opt/render/.cache/prisma-python", "-type", "f"], capture_output=True, text=True)
-        debug_info += f"Files in cache:\\n{res_find.stdout}\\n"
-        
-        # Also try to execute any engine file we find
-        engines = [f for f in res_find.stdout.split('\\n') if "query-engine" in f]
-        for eng in engines:
-            import os
-            os.chmod(eng, 0o755)
-            res = subprocess.run([eng, "-V"], capture_output=True, text=True)
-            debug_info += f"Exec {eng}: code={res.returncode}, out='{res.stdout.strip()}', err='{res.stderr.strip()}'\\n"
-                
-        debug_info += f"Original Error: {e}\\n==========================\\n"
-        raise RuntimeError(debug_info) from e
-
+    await prisma_client.connect()
     app.state.prisma = prisma_client
     logger.info("Prisma ORM connected to PostgreSQL")
 
