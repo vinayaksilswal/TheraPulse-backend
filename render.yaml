@@ -28,7 +28,8 @@ services:
       pip install -r requirements.txt &&
       prisma py fetch &&
       prisma generate --schema=schema_py.prisma &&
-      find /opt/render/.cache/prisma-python -name "prisma-query-engine-debian-openssl-3.0.x" -exec cp {} . \;
+      ENGINE_PATH=$(find /opt/render -name "prisma-query-engine-debian-openssl-3.0.x" -type f | head -n 1) &&
+      if [ -n "$ENGINE_PATH" ]; then cp "$ENGINE_PATH" ./prisma-query-engine-debian-openssl-3.0.x; chmod +x ./prisma-query-engine-debian-openssl-3.0.x; fi
     startCommand: |
       cd python_admin &&
       gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT
