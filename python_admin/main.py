@@ -95,11 +95,43 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # the current running event loop, not a stale or non-existent one.
     import subprocess
     import sys
+    import glob
+    import shutil
+    import os
     logger.info("Ensuring Prisma engine is available at runtime...")
     try:
         subprocess.run([sys.executable, "-m", "prisma", "py", "fetch"], check=True)
+        
+        # Locate the downloaded binary
+        cache_dir = "/opt/render/.cache/prisma-python/binaries/*/*/"
+        engines = glob.glob(cache_dir + "prisma-query-engine-*")
+        if engines:
+            engine_path = engines[0]
+            logger.info(f"Found engine at {engine_path}")
+            
+            # Ensure it is executable
+            os.chmod(engine_path, 0o755)
+            
+            # Test execution
+            result = subprocess.run([engine_path, "-V"], capture_output=True, text=True)
+            logger.info(f"Engine execution test: stdout='{result.stdout.strip()}', stderr='{result.stderr.strip()}', code={result.returncode}")
+            
+            # Force copy to the exact path Prisma expects based on previous logs
+            target_path = "./prisma-query-engine-debian-openssl-3.0.x"
+            shutil.copy(engine_path, target_path)
+            os.chmod(target_path, 0o755)
+            logger.info(f"Force copied engine to {target_path}")
+            
+            # Also copy to native just in case
+            target_path_native = f"./{os.path.basename(engine_path)}"
+            if target_path != target_path_native:
+                shutil.copy(engine_path, target_path_native)
+                os.chmod(target_path_native, 0o755)
+                logger.info(f"Force copied engine to {target_path_native}")
+        else:
+            logger.error("No engine found in cache after fetch!")
     except Exception as e:
-        logger.error(f"Failed to fetch Prisma engine: {e}")
+        logger.error(f"Failed to fetch/setup Prisma engine: {e}")
 
     prisma_client = Prisma()
     os.environ["DATABASE_URL"] = settings.database_url
