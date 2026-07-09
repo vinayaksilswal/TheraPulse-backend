@@ -1,6 +1,5 @@
 import express from 'express';
 import prisma from '../db.js';
-import { getAccessToken } from '../services/cjService.js';
 
 const router = express.Router();
 
@@ -100,80 +99,7 @@ router.get('/catalog.csv', async (req, res) => {
   }
 });
 
-// Add a new product
-router.post('/', async (req, res) => {
-  try {
-    const product = req.body;
-    const productData = {
-      pid: product.pid,
-      productName: product.productName || '',
-      productSku: product.productSku || '',
-      sellPrice: product.sellPrice || 0,
-      originalPrice: product.originalPrice || 0,
-      costPrice: product.costPrice || 0,
-      inventory: product.inventory || 0,
-      categoryName: product.categoryName || '',
-      productImage: product.productImage || '',
-      productImages: product.productImages || [],
-      productVideo: product.productVideo || null,
-      description: product.description || '',
-      highlights: product.highlights || [],
-      tagline: product.tagline || '',
-      listCount: product.listCount || 0,
-      manualSortOrder: product.manualSortOrder,
-    };
-
-    const savedProduct = await prisma.product.upsert({
-      where: { pid: product.pid },
-      update: productData,
-      create: productData,
-    });
-    
-    res.json({ success: true, product: savedProduct });
-  } catch (error) {
-    console.error('Error saving product:', error);
-    res.status(500).json({ success: false, error: 'Failed to save product' });
-  }
-});
-
-// Update an existing product
-router.put('/:pid', async (req, res) => {
-  try {
-    const { pid } = req.params;
-    const updates = req.body;
-    
-    // remove fields that should not be updated directly or don't exist in schema
-    delete updates.id;
-    delete updates.pid;
-    delete updates.createdAt;
-    delete updates.updatedAt;
-    delete updates.productPriceMin;
-    delete updates.productPriceMax;
-    delete updates.price; // legacy field sometimes sent by frontend
-
-    const updated = await prisma.product.update({
-      where: { pid },
-      data: updates
-    });
-    res.json({ success: true, product: updated });
-  } catch (error) {
-    console.error('Error updating product:', error);
-    res.status(500).json({ success: false, error: 'Failed to update product' });
-  }
-});
-
-// Delete a product
-router.delete('/:pid', async (req, res) => {
-  try {
-    const { pid } = req.params;
-    await prisma.product.delete({
-      where: { pid }
-    });
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting product:', error);
-    res.status(500).json({ success: false, error: 'Failed to delete product' });
-  }
-});
+// Product management (POST, PUT, DELETE) has been moved to the Python Admin backend
+// to enforce strict separation of concerns between frontend and backend.
 
 export default router;

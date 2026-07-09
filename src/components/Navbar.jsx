@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { ShoppingBag, X, Menu } from 'lucide-react';
+import { ShoppingBag, X, Menu, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar({ cartCount, onCartOpen, onCheckoutClick }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <header className="w-full z-40 relative">
@@ -58,6 +60,15 @@ export default function Navbar({ cartCount, onCartOpen, onCheckoutClick }) {
               )}
             </button>
 
+            {/* Profile Icon */}
+            <Link
+              to={user ? "/profile" : "/login"}
+              className="p-2 rounded-full border border-slate-200 hover:border-slate-300 bg-slate-50 text-obsidian hover:text-slate-900 transition-all duration-200"
+              title={user ? "My Profile" : "Login"}
+            >
+              <User className="h-4.5 w-4.5" />
+            </Link>
+
             <button
               onClick={onCheckoutClick}
               className="hidden md:block px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-teal hover:bg-teal-600 text-white transition-all duration-300 transform hover:scale-105 border border-teal-500/20 hover:shadow-[0_0_15px_rgba(13,148,136,0.3)]"
@@ -84,6 +95,9 @@ export default function Navbar({ cartCount, onCartOpen, onCheckoutClick }) {
             </Link>
             <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className="py-3 px-4 rounded-xl text-sm font-bold text-gray-900 hover:bg-slate-50 transition-colors">
               Shop All Products
+            </Link>
+            <Link to={user ? "/profile" : "/login"} onClick={() => setIsMobileMenuOpen(false)} className="py-3 px-4 rounded-xl text-sm font-bold text-gray-900 hover:bg-slate-50 transition-colors">
+              {user ? "My Profile" : "Login"}
             </Link>
             <button
               onClick={() => { setIsMobileMenuOpen(false); onCheckoutClick(); }}

@@ -10,6 +10,9 @@ import CheckoutDrawer from './components/CheckoutDrawer';
 import CartDrawer from './components/CartDrawer';
 import PaypalModal from './components/PaypalModal';
 import TopBanner from './components/TopBanner';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
 import { recordSale } from './services/saleService';
 import { calculateCartTotal } from './utils/pricing';
 import { createLogger } from './utils/logger';
@@ -17,7 +20,6 @@ import { trackPageView } from './utils/metaPixel';
 import { useLocation } from 'react-router-dom';
 
 // Lazy-loaded routes (not needed on initial ad-traffic paint)
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const CheckoutSuccess = lazy(() => import('./pages/CheckoutSuccess'));
 const ConfirmSale = lazy(() => import('./pages/ConfirmSale'));
 
@@ -232,7 +234,9 @@ export default function App() {
                       />
                     }
                   />
-                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/profile" element={<Profile />} />
                   <Route path="/checkout/success" element={<CheckoutSuccess />} />
                   <Route path="/checkout/confirm-sale" element={<ConfirmSale />} />
                   

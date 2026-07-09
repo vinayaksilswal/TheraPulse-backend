@@ -137,6 +137,7 @@ router.post('/ipn', async (req, res) => {
       data: {
         orderNumber,
         customerName: customerData.fullName,
+        customerEmail: customerData.email,
         shippingAddress: customerData.address,
         shippingCity: customerData.city,
         shippingState: customerData.state,
@@ -162,6 +163,15 @@ router.post('/ipn', async (req, res) => {
         }
       }
     });
+
+    // Upsert into Audience list
+    if (customerData.email) {
+      await prisma.audience.upsert({
+        where: { email: customerData.email },
+        update: { name: customerData.fullName, phone: customerData.phone },
+        create: { name: customerData.fullName, email: customerData.email, phone: customerData.phone, source: 'warriorplus' }
+      }).catch(err => console.error('Audience upsert error:', err));
+    }
 
     console.log(`WarriorPlus IPN: Successfully processed order ${orderNumber} for ${customerData.email}`);
   } catch (error) {

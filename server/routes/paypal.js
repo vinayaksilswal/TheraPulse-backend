@@ -185,6 +185,7 @@ router.post('/capture-order', async (req, res) => {
         data: {
           orderNumber,
           customerName: customerData.fullName || 'Customer',
+          customerEmail: customerData.email || '',
           shippingAddress: customerData.address || '',
           shippingCity: customerData.city || '',
           shippingState: customerData.state || '',
@@ -204,6 +205,15 @@ router.post('/capture-order', async (req, res) => {
         }
       });
       
+      // Upsert into Audience list
+      if (customerData.email) {
+        await prisma.audience.upsert({
+          where: { email: customerData.email },
+          update: { name: customerData.fullName, phone: customerData.phone },
+          create: { name: customerData.fullName, email: customerData.email, phone: customerData.phone, source: 'checkout' }
+        }).catch(err => console.error('Audience upsert error:', err));
+      }
+
       // Fire Meta CAPI Purchase Event
       const nameParts = (customerData.fullName || '').split(' ');
       const firstName = nameParts[0] || '';

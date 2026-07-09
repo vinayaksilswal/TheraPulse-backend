@@ -1,0 +1,1 @@
+const { Pool } = require('pg'); const pool = new Pool({ connectionString: 'postgresql://neondb_owner:npg_57yMDSoubkxO@ep-young-term-aje8vc02-pooler.c-3.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require' }); pool.query('SELECT COUNT(*) FROM "Product"').then(res => { console.log(res.rows[0]); process.exit(0); });

@@ -6,7 +6,7 @@ import { trackEvent } from '../utils/metaPixel';
 
 export default function CheckoutSuccess() {
   const [searchParams] = useSearchParams();
-  const value = searchParams.get('value') || '139.00';
+  const value = searchParams.get('value') || '0.00';
   const currency = searchParams.get('currency') || 'USD';
   const orderId = searchParams.get('order_id') || `LV-${Math.floor(Math.random() * 900000) + 100000}`;
 

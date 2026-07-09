@@ -22,7 +22,7 @@ function formatProductName(name, id) {
 function formatVariantName(name) {
   if (!name) return 'Standard Edition';
   // Clean Lumively branding from variant names
-  let cleanName = name.replace(/TheraPulse/gi, 'Lumively');
+  let cleanName = name.replace(/Lumively/gi, 'Lumively');
   if (name.includes('(')) return name; // Already formatted (e.g. Mask (Standard))
   
   // Convert to lower case for easier matching
@@ -38,7 +38,7 @@ function formatVariantName(name) {
   if (lower.includes('set3') || lower.includes('set 3')) return '3-Piece Set';
   
   // Generic cleanup fallback combining both regexes
-  let clean = name.replace(/(Electric|Neck And Shoulder|Muscle Massager|Wireless|Shoulder And Back|Kneading|Massage Shawl|Neck Masajeador|Relax Pain Relief|TheraPulse|Lumively|4 Colors|Red Blue Light|Massage Eye Beautification Instrument|Therapeutic Warmth|Face Massage|English|Rose Gold|Dropshipping|Wholesale|Fast Shipping|Multifunctional Manual Six-wheel Neck Massager Massage Relieve Roller Massage Tool)/gi, '').trim();
+  let clean = name.replace(/(Electric|Neck And Shoulder|Muscle Massager|Wireless|Shoulder And Back|Kneading|Massage Shawl|Neck Masajeador|Relax Pain Relief|Lumively|Lumively|4 Colors|Red Blue Light|Massage Eye Beautification Instrument|Therapeutic Warmth|Face Massage|English|Rose Gold|Dropshipping|Wholesale|Fast Shipping|Multifunctional Manual Six-wheel Neck Massager Massage Relieve Roller Massage Tool)/gi, '').trim();
   
   if (clean.length < 2) {
     // Fallback: take the last 3 words

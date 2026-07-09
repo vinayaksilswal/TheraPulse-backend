@@ -1,0 +1,94 @@
+# =============================================================================
+# Lumively — Render Blueprint (render.yaml)
+# =============================================================================
+# Defines the infrastructure for deploying on Render:
+#   1. Python web service (FastAPI backend with admin UI & scheduler)
+#   2. Managed PostgreSQL database
+#
+# IMPORTANT: This blueprint uses a SINGLE instance (numInstances: 1) because
+# the APScheduler marketing loop must not run on multiple instances
+# simultaneously to prevent duplicate posts/emails.
+#
+# Deploy: Connect your GitHub repo to Render and use this Blueprint.
+# Docs: https://render.com/docs/blueprint-spec
+# =============================================================================
+
+services:
+  # =========================================================================
+  # Lumively API — Python FastAPI Backend
+  # =========================================================================
+  - type: web
+    name: lumively-api
+    runtime: python
+    region: oregon
+
+    # --- Build & Start ---
+    buildCommand: |
+      cd python_admin &&
+      pip install -r requirements.txt &&
+      prisma generate --schema=schema_py.prisma
+    startCommand: |
+      cd python_admin &&
+      gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT
+
+    # --- Scaling: MUST be 1 for scheduler consistency ---
+    numInstances: 1
+
+    # --- Health Check ---
+    healthCheckPath: /health
+
+    # --- Environment Variables ---
+    envVars:
+      # Database (auto-populated from the managed DB below)
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lumively-db
+          property: connectionString
+
+      # Application
+      - key: ENVIRONMENT
+        value: production
+
+      # Admin Credentials (set these in Render dashboard → Environment)
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+      # CJ Dropshipping
+      - key: CJ_API_KEY
+        sync: false
+
+      # OpenRouter (LLM)
+      - key: OPENROUTER_API_KEY
+        sync: false
+
+      # Meta Graph API (Facebook + Instagram)
+      - key: FB_PAGE_ACCESS_TOKEN
+        sync: false
+      - key: FB_PAGE_ID
+        sync: false
+      - key: IG_BUSINESS_ACCOUNT_ID
+        sync: false
+
+      # Resend (Email)
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        value: "Lumively <support@lumively.com>"
+
+      # CORS (set to your frontend domain)
+      - key: ALLOWED_ORIGINS
+        value: '["https://lumively.com","https://www.lumively.com"]'
+
+# =============================================================================
+# Managed PostgreSQL Database
+# =============================================================================
+databases:
+  - name: lumively-db
+    plan: starter  # Free tier (256 MB, 1 GB storage)
+    region: oregon
+    databaseName: lumively
+    user: lumively_user

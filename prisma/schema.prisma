@@ -29,6 +29,8 @@ model Product {
   updatedAt       DateTime    @updatedAt
 
   orderItems      OrderItem[]
+  socialPosts     SocialPost[]
+  emailCampaigns  EmailCampaign[]
 }
 
 model Order {
@@ -51,6 +53,8 @@ model Order {
   auditRevenue    Float?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   items           OrderItem[]
 }
@@ -66,4 +70,67 @@ model OrderItem {
   price     Float
   costPrice Float
   vid       String? // Variant ID used in CJ
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model Audience {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  phone     String?
+  source    String   @default("checkout")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MarketingState {
+  id            String   @id @default("singleton")
+  lastSocialIdx Int      @default(0)
+  lastEmailIdx  Int      @default(0)
+  autoApprove   Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+}
+
+model SocialPost {
+  id           String   @id @default(cuid())
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  platform     String   // FACEBOOK, INSTAGRAM, BOTH
+  type         String   @default("AUTO") // AUTO or MANUAL
+  caption      String   @db.Text
+  mediaUrls    String[]
+  scheduledAt  DateTime
+  postedAt     DateTime?
+  status       String   @default("DRAFT") // DRAFT, POSTED, FAILED
+  errorLog     String?  @db.Text
+  fbPostId     String?
+  igPostId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model EmailCampaign {
+  id           String   @id @default(cuid())
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  type         String   @default("AUTO") // AUTO or MANUAL
+  subject      String
+  bodyText     String   @db.Text
+  bodyHtml     String   @db.Text
+  scheduledAt  DateTime
+  sentAt       DateTime?
+  status       String   @default("DRAFT") // DRAFT, SENT, FAILED
+  errorLog     String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
