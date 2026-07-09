@@ -93,6 +93,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # --- Step 1: Instantiate and connect Prisma INSIDE the lifespan ---
     # This is the critical fix: creating Prisma() here ensures it uses
     # the current running event loop, not a stale or non-existent one.
+    import subprocess
+    import sys
+    logger.info("Ensuring Prisma engine is available at runtime...")
+    try:
+        subprocess.run([sys.executable, "-m", "prisma", "py", "fetch"], check=True)
+    except Exception as e:
+        logger.error(f"Failed to fetch Prisma engine: {e}")
+
     prisma_client = Prisma()
     os.environ["DATABASE_URL"] = settings.database_url
     await prisma_client.connect()
