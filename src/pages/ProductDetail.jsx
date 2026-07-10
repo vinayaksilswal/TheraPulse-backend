@@ -397,6 +397,7 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
               ) : imageSrc && (imageSrc.match(/\.(mp4|webm|ogg)$/i) || imageSrc === product.productVideo || imageSrc === product.uploadedVideo) ? (
                 <video 
                   src={imageSrc} 
+                  controls
                   autoPlay 
                   loop 
                   muted 
