@@ -144,7 +144,7 @@ async def get_media(media_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Media not found")
         
     # Decode the Base64 string back to bytes for the response
-    decoded_data = base64.b64decode(media_record.data)
+    decoded_data = media_record.data.decode()
     file_size = len(decoded_data)
     
     import re
