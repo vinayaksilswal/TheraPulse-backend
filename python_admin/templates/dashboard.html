@@ -145,7 +145,7 @@
                             <td class="px-6 py-4 font-mono text-obsidian">{{ product.inventory }}</td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
-                                    <a href="/product/{{ product.pid }}" target="_blank" class="px-3 py-1.5 bg-white border border-gray-200 text-obsidian rounded-lg font-bold text-[10px] uppercase tracking-wider hover:bg-gray-50 transition-colors">View</a>
+                                    <a href="https://lumively.com/product/{{ product.pid }}" target="_blank" class="px-3 py-1.5 bg-white border border-gray-200 text-obsidian rounded-lg font-bold text-[10px] uppercase tracking-wider hover:bg-gray-50 transition-colors">View</a>
                                     <button onclick="editProduct('{{ product.pid }}')" class="px-3 py-1.5 bg-obsidian text-white rounded-lg font-bold text-[10px] uppercase tracking-wider hover:bg-gray-800 transition-colors flex items-center gap-1">
                                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                         Edit
@@ -299,7 +299,18 @@
                     <!-- Media -->
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Product Video URL</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Upload Product Video</label>
+                            <div class="flex items-center gap-2 mt-1">
+                                <input type="file" @change="uploadMedia" accept="video/*" class="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-led-purple focus:ring-1 focus:ring-led-purple bg-white">
+                                <span v-if="uploadingMedia" class="text-xs font-bold text-led-purple animate-pulse shrink-0">Uploading...</span>
+                            </div>
+                            <div v-if="product.uploadedVideo" class="mt-2 text-xs text-emerald-600 font-bold break-all">
+                                ✓ Uploaded: {% raw %}{{ product.uploadedVideo }}{% endraw %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Product Video URL (Link)</label>
                             <input v-model="product.productVideo" placeholder="https://" class="w-full mt-1 border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-led-purple focus:ring-1 focus:ring-led-purple">
                         </div>
                         
@@ -415,6 +426,7 @@
             setup() {
                 const showModal = ref(false);
                 const saving = ref(false);
+                const uploadingMedia = ref(false);
                 const product = ref({});
 
                 const openModal = async (pid) => {
@@ -529,12 +541,39 @@
                     }
                 };
 
+                const uploadMedia = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    uploadingMedia.value = true;
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    try {
+                        const res = await fetch('/api/v1/upload-media', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            product.value.uploadedVideo = data.data.url;
+                        } else {
+                            alert('Upload failed: ' + (data.message || ''));
+                        }
+                    } catch (err) {
+                        alert('Upload failed');
+                    } finally {
+                        uploadingMedia.value = false;
+                        e.target.value = ''; // Reset file input
+                    }
+                };
+
                 window.editProduct = openModal;
                 window.openLinkModal = openLink;
 
                 return {
-                    showModal, saving, product, closeModal, addImage, removeImage, setMainImage, aiRewrite, saveProduct,
-                    showLinkModal, openLink, closeLinkModal, productLandingUrl, checkoutSuccessUrl, copyToClipboard
+                    showModal, saving, uploadingMedia, product, closeModal, addImage, removeImage, setMainImage, aiRewrite, saveProduct,
+                    showLinkModal, openLink, closeLinkModal, productLandingUrl, checkoutSuccessUrl, copyToClipboard, uploadMedia
                 };
             }
         });

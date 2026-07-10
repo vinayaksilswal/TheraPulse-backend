@@ -225,7 +225,7 @@ async def edit_social_post(
         is_success = fb_post_id is not None or ig_post_id is not None
         
         # Override status if publishing failed
-        data.status = "POSTED" if is_success else "FAILED"
+        update_data["status"] = "POSTED" if is_success else "FAILED"
         update_data["fbPostId"] = fb_post_id
         update_data["igPostId"] = ig_post_id
         update_data["errorLog"] = " | ".join(errors) if errors else None

@@ -16,9 +16,12 @@ All endpoints use request.app.state.prisma (no standalone Prisma instances).
 from __future__ import annotations
 
 import json
+import shutil
+import os
+import uuid
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from loguru import logger
 from pydantic import BaseModel, Field
 
@@ -63,6 +66,7 @@ class ProductUpdate(BaseModel):
     productImage: Optional[str] = None
     productImages: Optional[List[str]] = None
     productVideo: Optional[str] = None
+    uploadedVideo: Optional[str] = None
     tagline: Optional[str] = None
 
 
@@ -101,6 +105,48 @@ class ChatRequest(BaseModel):
         ..., description="Conversation messages array"
     )
 
+
+# =============================================================================
+# Upload Endpoints
+# =============================================================================
+from fastapi.responses import Response
+import base64
+
+@router.post("/upload-media", response_model=StandardResponse)
+async def upload_media(request: Request, file: UploadFile = File(...)) -> StandardResponse:
+    """Upload a video or image file to the database (Media table)."""
+    try:
+        prisma = request.app.state.prisma
+        file_bytes = await file.read()
+        mime_type = file.content_type or "application/octet-stream"
+        
+        # Prisma Python expects Base64 encoded strings for Bytes fields
+        encoded_data = base64.b64encode(file_bytes).decode('utf-8')
+        
+        media_record = await prisma.media.create(
+            data={
+                "filename": file.filename or "uploaded_media",
+                "mimeType": mime_type,
+                "data": encoded_data
+            }
+        )
+        return StandardResponse(success=True, data={"url": f"/api/v1/media/{media_record.id}"})
+    except Exception as e:
+        logger.error(f"Failed to upload media: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
+
+@router.get("/media/{media_id}")
+async def get_media(media_id: str, request: Request):
+    """Retrieve media from the database."""
+    prisma = request.app.state.prisma
+    media_record = await prisma.media.find_unique(where={"id": media_id})
+    if not media_record:
+        raise HTTPException(status_code=404, detail="Media not found")
+        
+    # Decode the Base64 string back to bytes for the response
+    decoded_data = base64.b64decode(media_record.data)
+    
+    return Response(content=decoded_data, media_type=media_record.mimeType)
 
 # =============================================================================
 # Product Endpoints

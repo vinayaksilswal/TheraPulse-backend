@@ -132,15 +132,71 @@ async def post_to_facebook(
     if not media_urls:
         media_urls = []
 
-    # --- Priority 1: Video ---
-    video_url = next((url for url in media_urls if _is_video(url)), None)
+    video_urls = [url for url in media_urls if _is_video(url)]
+    image_urls = [url for url in media_urls if not _is_video(url)]
 
-    if video_url:
+    # --- Priority 1: Multi-media (Videos and Images) ---
+    if len(media_urls) > 1:
+        attached_media: list[dict[str, str]] = []
+
+        # Upload each video as unpublished
+        for vid_url in video_urls[:5]:
+            vid_payload = {
+                "access_token": access_token,
+                "file_url": vid_url,
+                "published": "false",
+            }
+            try:
+                res = await _graph_post(f"{GRAPH_BASE_URL}/{page_id}/videos", vid_payload)
+                media_id = res.get("id")
+                if media_id:
+                    attached_media.append({"media_fbid": media_id})
+            except Exception as e:
+                logger.warning(f"Failed to upload unpublished FB video: {e}")
+
+        # Upload each image as unpublished
+        for img_url in image_urls[:10]:
+            photo_payload = {
+                "access_token": access_token,
+                "url": img_url,
+                "published": "false",
+            }
+            try:
+                res = await _graph_post(f"{GRAPH_BASE_URL}/{page_id}/photos", photo_payload)
+                media_id = res.get("id")
+                if media_id:
+                    attached_media.append({"media_fbid": media_id})
+            except Exception as e:
+                logger.warning(f"Failed to upload unpublished FB photo: {e}")
+
+        if not attached_media:
+            logger.error("No media uploaded for Facebook combined post")
+            return None
+
+        # Create the combined feed post
+        import json as json_lib
+        feed_payload = {
+            "access_token": access_token,
+            "message": message,
+            "attached_media": json_lib.dumps(attached_media),
+        }
+        try:
+            result = await _graph_post(f"{GRAPH_BASE_URL}/{page_id}/feed", feed_payload)
+            post_id = result.get("id")
+            logger.info(f"✓ Facebook combined post created: {post_id}")
+            return post_id
+        except Exception as e:
+            logger.error(f"Facebook combined post failed: {e}. Falling back to standard posts.")
+            # If combined post fails, fallback is to do nothing right now (or handle it via standard)
+            return None
+
+    # --- Priority 2: Single Video ---
+    elif video_urls:
         url = f"{GRAPH_BASE_URL}/{page_id}/videos"
         payload = {
             "access_token": access_token,
             "description": message,
-            "file_url": video_url,
+            "file_url": video_urls[0],
         }
         try:
             result = await _graph_post(url, payload)
@@ -151,13 +207,13 @@ async def post_to_facebook(
             logger.error(f"Facebook video post failed: {e}")
             return None
 
-    # --- Priority 2: Single Image ---
-    elif len(media_urls) == 1:
+    # --- Priority 3: Single Image ---
+    elif image_urls:
         url = f"{GRAPH_BASE_URL}/{page_id}/photos"
         payload = {
             "access_token": access_token,
             "message": message,
-            "url": media_urls[0],
+            "url": image_urls[0],
         }
         try:
             result = await _graph_post(url, payload)
@@ -166,50 +222,6 @@ async def post_to_facebook(
             return post_id
         except Exception as e:
             logger.error(f"Facebook image post failed: {e}")
-            return None
-
-    # --- Priority 3: Multi-image Carousel ---
-    elif len(media_urls) > 1:
-        attached_media: list[dict[str, str]] = []
-
-        # Upload each image as an unpublished photo
-        for img_url in media_urls[:10]:  # Max 10 images per carousel
-            if _is_video(img_url):
-                continue  # Skip videos in carousel
-            photo_url = f"{GRAPH_BASE_URL}/{page_id}/photos"
-            photo_payload = {
-                "access_token": access_token,
-                "url": img_url,
-                "published": "false",
-            }
-            try:
-                res = await _graph_post(photo_url, photo_payload)
-                media_id = res.get("id")
-                if media_id:
-                    attached_media.append({"media_fbid": media_id})
-            except Exception as e:
-                logger.warning(f"Failed to upload unpublished FB photo: {e}")
-
-        if not attached_media:
-            logger.error("No images uploaded for Facebook carousel")
-            return None
-
-        # Create the carousel post with all attached media
-        import json as json_lib
-
-        feed_url = f"{GRAPH_BASE_URL}/{page_id}/feed"
-        feed_payload = {
-            "access_token": access_token,
-            "message": message,
-            "attached_media": json_lib.dumps(attached_media),
-        }
-        try:
-            result = await _graph_post(feed_url, feed_payload)
-            post_id = result.get("id")
-            logger.info(f"✓ Facebook carousel posted: {post_id}")
-            return post_id
-        except Exception as e:
-            logger.error(f"Facebook carousel post failed: {e}")
             return None
 
     # --- Priority 4: Text only ---
@@ -328,25 +340,33 @@ async def post_to_instagram(
         logger.warning("Instagram requires at least one media URL")
         return None
 
-    # --- Priority 1: Video → REELS ---
-    video_url = next((url for url in media_urls if _is_video(url)), None)
-
-    if video_url:
-        return await _ig_post_video(ig_user_id, access_token, message, video_url)
-
-    # --- Priority 2: Multiple images → Carousel ---
+    # Separate videos and images
+    video_urls = [url for url in media_urls if _is_video(url)]
     image_urls = [url for url in media_urls if not _is_video(url)]
+
+    post_ids = []
+
+    # --- Post each video as a separate REEL ---
+    for vid_url in video_urls:
+        vid_id = await _ig_post_video(ig_user_id, access_token, message, vid_url)
+        if vid_id:
+            post_ids.append(vid_id)
+
+    # --- Post images as Carousel or Single Image ---
     if len(image_urls) > 1:
-        return await _ig_post_carousel(ig_user_id, access_token, message, image_urls)
+        img_id = await _ig_post_carousel(ig_user_id, access_token, message, image_urls)
+        if img_id:
+            post_ids.append(img_id)
+    elif len(image_urls) == 1:
+        img_id = await _ig_post_single_image(ig_user_id, access_token, message, image_urls[0])
+        if img_id:
+            post_ids.append(img_id)
 
-    # --- Priority 3: Single image ---
-    if image_urls:
-        return await _ig_post_single_image(
-            ig_user_id, access_token, message, image_urls[0]
-        )
+    if not post_ids:
+        logger.warning("No successful Instagram posts created")
+        return None
 
-    logger.warning("No valid media URLs for Instagram post")
-    return None
+    return ",".join(post_ids)
 
 
 async def _ig_post_video(

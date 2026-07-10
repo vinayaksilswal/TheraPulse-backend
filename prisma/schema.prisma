@@ -20,6 +20,7 @@ model Product {
   productImage    String
   productImages   String[]
   productVideo    String?
+  uploadedVideo   String?
   description     String
   highlights      String[]
   tagline         String?
@@ -133,4 +134,12 @@ model EmailCampaign {
   errorLog     String?  @db.Text
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  mimeType  String
+  data      Bytes
+  createdAt DateTime @default(now())
 }

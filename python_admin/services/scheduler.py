@@ -205,6 +205,12 @@ async def execute_marketing_loop() -> None:
 
     # --- Step 3: Gather media (video-first priority) ---
     media_urls: list[str] = []
+    if getattr(product, "uploadedVideo", None):
+        # Ensure it's an absolute URL
+        vid_url = product.uploadedVideo
+        if vid_url.startswith("/"):
+            vid_url = f"https://lumively.com{vid_url}"
+        media_urls.append(vid_url)
     if product.productVideo:
         media_urls.append(product.productVideo)
     if product.productImages:
@@ -374,13 +380,13 @@ def create_scheduler(prisma: Prisma) -> AsyncIOScheduler:
         id="marketing_loop",
         name="Bi-Hourly Autonomous Marketing Loop",
         replace_existing=True,
-        # Don't run immediately — let the app warm up first
-        # The first execution will be 2 hours after startup
+        # Run immediately on startup to ensure it works, then every 2 hours
+        next_run_time=datetime.now(),
     )
 
     logger.info(
         "Scheduler configured: marketing loop every 2 hours "
-        "(first execution in 2 hours)"
+        "(running first execution immediately)"
     )
     return scheduler
 

@@ -274,6 +274,9 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
     }
 
     // 2. Add ALL Videos FIRST
+    if (prod.uploadedVideo) {
+      addImg(prod.uploadedVideo);
+    }
     if (prod.productVideo) {
       addImg(prod.productVideo);
     }
