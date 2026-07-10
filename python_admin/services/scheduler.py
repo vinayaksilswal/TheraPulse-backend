@@ -380,13 +380,10 @@ def create_scheduler(prisma: Prisma) -> AsyncIOScheduler:
         id="marketing_loop",
         name="Bi-Hourly Autonomous Marketing Loop",
         replace_existing=True,
-        # Run immediately on startup to ensure it works, then every 2 hours
-        next_run_time=datetime.now(),
     )
 
     logger.info(
         "Scheduler configured: marketing loop every 2 hours "
-        "(running first execution immediately)"
     )
     return scheduler
 

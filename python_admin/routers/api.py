@@ -117,11 +117,23 @@ async def upload_media(request: Request, file: UploadFile = File(...)) -> Standa
     """Upload a video or image file to the database (Media table)."""
     try:
         prisma = request.app.state.prisma
-        file_bytes = await file.read()
         mime_type = file.content_type or "application/octet-stream"
         
-        # Prisma Python expects Base64 encoded strings for Bytes fields
-        encoded_data = base64.b64encode(file_bytes).decode('utf-8')
+        import base64
+        import gc
+        
+        encoded_parts = []
+        chunk_size = 3 * 1024 * 1024 # 3MB chunk (must be multiple of 3)
+        while True:
+            chunk = await file.read(chunk_size)
+            if not chunk:
+                break
+            encoded_parts.append(base64.b64encode(chunk).decode('ascii'))
+            del chunk
+            
+        encoded_data = "".join(encoded_parts)
+        del encoded_parts
+        gc.collect()
         
         media_record = await prisma.media.create(
             data={
@@ -130,6 +142,10 @@ async def upload_media(request: Request, file: UploadFile = File(...)) -> Standa
                 "data": encoded_data
             }
         )
+        
+        del encoded_data
+        gc.collect()
+        
         return StandardResponse(success=True, data={"url": f"/api/v1/media/{media_record.id}"})
     except Exception as e:
         logger.error(f"Failed to upload media: {e}")
@@ -144,14 +160,18 @@ async def get_media(media_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Media not found")
         
     import base64
-    
-    # Decode the Base64 string back to bytes for the response
-    # media_record.data could be a string or bytes depending on Prisma version, so we convert it to string if it's bytes first to decode base64.
-    data_str = media_record.data if isinstance(media_record.data, str) else media_record.data.decode('utf-8')
-    decoded_data = base64.b64decode(data_str)
-    file_size = len(decoded_data)
-    
     import re
+    from fastapi.responses import Response, StreamingResponse
+    
+    data_str = media_record.data if isinstance(media_record.data, str) else media_record.data.decode('utf-8')
+    
+    padding = 0
+    if data_str.endswith("=="):
+        padding = 2
+    elif data_str.endswith("="):
+        padding = 1
+    file_size = (len(data_str) // 4) * 3 - padding
+    
     range_header = request.headers.get("Range")
     if range_header:
         byte1, byte2 = 0, None
@@ -161,11 +181,29 @@ async def get_media(media_id: str, request: Request):
             byte1 = int(g[0])
             if g[1]:
                 byte2 = int(g[1])
-        if byte2 is None or byte2 >= file_size:
+                
+        MAX_CHUNK_SIZE = 3 * 1024 * 1024 # 3MB max chunk
+        
+        if byte2 is None:
+            byte2 = byte1 + MAX_CHUNK_SIZE - 1
+            
+        if (byte2 - byte1 + 1) > MAX_CHUNK_SIZE:
+            byte2 = byte1 + MAX_CHUNK_SIZE - 1
+            
+        if byte2 >= file_size:
             byte2 = file_size - 1
             
         length = byte2 - byte1 + 1
-        data = decoded_data[byte1:byte2+1]
+        
+        # Decode only the required base64 block
+        block_start = (byte1 // 3) * 4
+        block_end = ((byte2 // 3) + 1) * 4
+        
+        chunk_b64 = data_str[block_start:block_end]
+        chunk_bytes = base64.b64decode(chunk_b64)
+        
+        offset_start = byte1 % 3
+        data = chunk_bytes[offset_start:offset_start + length]
         
         headers = {
             "Content-Range": f"bytes {byte1}-{byte2}/{file_size}",
@@ -178,7 +216,13 @@ async def get_media(media_id: str, request: Request):
         "Accept-Ranges": "bytes",
         "Content-Length": str(file_size),
     }
-    return Response(content=decoded_data, headers=headers, media_type=media_record.mimeType)
+    
+    def iter_decode():
+        chunk_b64_size = 4 * 1024 * 1024 # 4MB base64 -> 3MB bytes
+        for i in range(0, len(data_str), chunk_b64_size):
+            yield base64.b64decode(data_str[i:i+chunk_b64_size])
+            
+    return StreamingResponse(iter_decode(), headers=headers, media_type=media_record.mimeType)
 
 # =============================================================================
 # Product Endpoints
