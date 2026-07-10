@@ -276,7 +276,8 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
     // 2. Add ALL Videos FIRST
     if (prod.uploadedVideo) {
       if (prod.uploadedVideo.startsWith('/api')) {
-        prod.uploadedVideo = `https://lumively.onrender.com${prod.uploadedVideo}`;
+        const pythonAdminUrl = import.meta.env.DEV ? 'http://localhost:8000' : 'https://lumively.onrender.com';
+        prod.uploadedVideo = `${pythonAdminUrl}${prod.uploadedVideo}`;
       }
       addImg(prod.uploadedVideo);
     }

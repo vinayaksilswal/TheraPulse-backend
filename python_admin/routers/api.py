@@ -143,8 +143,12 @@ async def get_media(media_id: str, request: Request):
     if not media_record:
         raise HTTPException(status_code=404, detail="Media not found")
         
+    import base64
+    
     # Decode the Base64 string back to bytes for the response
-    decoded_data = media_record.data.decode()
+    # media_record.data could be a string or bytes depending on Prisma version, so we convert it to string if it's bytes first to decode base64.
+    data_str = media_record.data if isinstance(media_record.data, str) else media_record.data.decode('utf-8')
+    decoded_data = base64.b64decode(data_str)
     file_size = len(decoded_data)
     
     import re
