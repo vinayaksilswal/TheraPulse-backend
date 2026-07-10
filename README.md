@@ -1,253 +1,153 @@
-# Lumively: AI-Powered E-Commerce Store with Marketing Automation
+# Lumively: Autonomous AI-Powered E-Commerce & Marketing Engine
 
-> An autonomous, AI-driven e-commerce platform that generates passive income through CJ Dropshipping fulfillment, AI-generated marketing content, and automated social media + email distribution.
+> **A full-stack, AI-driven e-commerce platform engineered to autonomously handle supply chain fulfillment, generate marketing content, and execute cross-platform social media distribution.**
+
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.103.1-009688.svg)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-React-000000.svg)](https://nextjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Prisma-336791.svg)](https://www.postgresql.org/)
 
 ---
 
-## Architecture Overview
+## 🚀 Technical Highlights & Achievements
 
+- **Autonomous Supply Chain**: Integrated CJ Dropshipping API v2 to engineer a zero-touch fulfillment system, featuring a dynamic pricing engine and automated bulk-product imports using regex extraction.
+- **AI Tool Calling Agent**: Architected an NLP-driven admin assistant using OpenRouter and Gemini-2.5-Flash. The agent features function-calling capabilities to trigger backend operations, query the database, and execute marketing campaigns via natural language.
+- **Event-Driven Marketing Loop**: Developed a background worker using `APScheduler` that runs a bi-hourly cycle to sequentially rotate products, generate premium LLM-written copy, and publish to Facebook and Instagram via the Meta Graph API.
+- **Robust Media Pipeline**: Implemented asynchronous polling for Instagram's video container processing and designed a custom database-backed media server capable of streaming raw video bytes directly to Meta APIs, bypassing ephemeral filesystem limitations.
+- **Full-Stack Architecture**: Built a high-performance backend using FastAPI and Python, paired with a Next.js/React storefront. Unified data access across both environments using Prisma ORM with PostgreSQL.
+
+---
+
+## 🏗 Architecture Overview
+
+```mermaid
+graph TD
+    subgraph Frontend [Next.js React Storefront]
+        UI[Product Catalog & Cart]
+        Checkout[PayPal Express Integration]
+    end
+
+    subgraph Backend [FastAPI Control Center]
+        API[REST API & Admin Dashboard]
+        Agent[AI Chatbot w/ Tool Calling]
+        Scheduler[Bi-Hourly Marketing Loop]
+    end
+
+    subgraph External Services
+        CJ[CJ Dropshipping API]
+        LLM[OpenRouter / Gemini]
+        Meta[Meta Graph API - FB/IG]
+        Email[Resend API]
+    end
+
+    subgraph Database
+        DB[(PostgreSQL)]
+        Media[Binary Media Storage]
+    end
+
+    UI --> API
+    API --> DB
+    API --> Agent
+    Scheduler --> LLM
+    Scheduler --> Meta
+    Scheduler --> Email
+    API <--> CJ
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      LUMIVELY PLATFORM                       │
-├─────────────────┬───────────────────────────────────────────┤
-│   Frontend      │   Next.js / Vite React (Vercel)           │
-│   (Storefront)  │   - Product catalog & cart                │
-│                 │   - PayPal Express checkout                │
-│                 │   - Customer accounts                      │
-├─────────────────┼───────────────────────────────────────────┤
-│   Backend       │   Python FastAPI (Render)                  │
-│   (Control      │   - Admin dashboard UI                     │
-│    Center)      │   - AI chatbot with tool calling           │
-│                 │   - CJ Dropshipping supply chain           │
-│                 │   - Meta Graph API publishing               │
-│                 │   - Resend email marketing                  │
-│                 │   - APScheduler (bi-hourly loop)            │
-├─────────────────┼───────────────────────────────────────────┤
-│   Database      │   PostgreSQL (Render managed)              │
-│                 │   - Prisma ORM (Python + JS clients)       │
-├─────────────────┼───────────────────────────────────────────┤
-│   Integrations  │   CJ Dropshipping API v2                   │
-│                 │   OpenRouter (google/gemini-2.5-flash)      │
-│                 │   Meta Graph API (FB + IG)                  │
-│                 │   Resend (support@lumively.com)             │
-└─────────────────┴───────────────────────────────────────────┘
-```
 
 ---
 
-## Features
+## 💻 Core Features
 
-### Autonomous Supply Chain
-- **Bulk SPU Importer**: Paste raw text with CJ SPU codes → regex extraction → auto-import with AI-rewritten copy
-- **Dynamic Pricing Engine**: `(CJ cost + $15) × 2.0` retail, `× 3.0` strikethrough
-- **Zero-Touch Fulfillment**: CJ `createOrderV2` with `payType=2` (wallet auto-deduction)
-- **Token Caching**: File-based CJ access token caching with autonomous refresh
+### 1. Zero-Touch Dropshipping & Supply Chain
+- **Bulk SPU Importer**: Parses raw text for CJ SPU codes, automatically fetching product details, images, and inventory.
+- **Dynamic Pricing Engine**: Programmatically sets retail and strikethrough pricing based on real-time wholesale costs.
+- **Automated Fulfillment**: Leverages CJ's `createOrderV2` endpoint with automated wallet deduction, eliminating manual order processing.
 
-### AI Intelligence
-- **Marketing Asset Generator**: Produces Instagram caption + email subject + HTML email body in one call
-- **Product Copy Rewriter**: Transforms raw CJ product data into premium e-commerce copy
-- **AI Chatbot (Tool Calling)**: Natural language admin assistant that can execute backend operations:
-  - Search products, post social ads, send email campaigns
-  - Trigger CJ fulfillment, check order status
-  - Bulk import products from pasted SPU codes
+### 2. Generative AI Intelligence
+- **Marketing Asset Generation**: Transforms raw product metadata into high-converting Instagram captions, email subjects, and HTML email bodies in a single inference call.
+- **Admin Chatbot**: Allows store owners to type *"Import product CJ123 and run a marketing campaign"*—the bot translates this intent into sequential API calls and executes them securely.
 
-### Marketing Automation
-- **Bi-Hourly Loop**: Sequential product rotation → AI copy → Meta API push → Resend email blast
-- **Instagram Container Polling**: Async polling (`asyncio.sleep`) until media containers are ready
-- **Facebook Carousel Support**: Multi-image posts with unpublished photo upload flow
-- **Video-First Logic**: Prioritizes REELS when product video exists
-- **Manual Overrides**: Upload media + generate AI captions outside the scheduler
-
-### Platform
-- **Admin Dashboard**: Full HTML dashboard with orders, products, revenue stats
-- **Marketing Dashboard**: Post/email management with edit, preview, and re-publish
-- **JWT Auth**: Cookie-based admin authentication with Bearer token API fallback
-- **Health Checks**: `/health` endpoint for Render monitoring
-- **Prometheus Metrics**: `/metrics` endpoint for observability
+### 3. Cross-Platform Social Media Automation
+- **Video-First Logic**: Automatically detects media types and prioritizes Instagram Reels when video data is present, falling back to Facebook Carousels for multi-image products.
+- **Async Processing**: Implements `asyncio.sleep` polling mechanisms to handle Instagram's containerized video publishing workflow.
+- **Database Media Streaming**: Stores large video assets directly in PostgreSQL as binary (`Bytes`) and serves them via a dedicated streaming endpoint to survive ephemeral cloud restarts.
 
 ---
 
-## Local Development Setup
+## 🛠 Tech Stack
+
+- **Backend Framework**: Python, FastAPI, Uvicorn, Gunicorn
+- **Frontend / UI**: HTML5, TailwindCSS, Vue.js (Dashboard), Next.js (Storefront)
+- **Database / ORM**: PostgreSQL, Prisma (Python & Node.js clients)
+- **Automation / Tasks**: APScheduler, Asyncio
+- **Integrations**: CJ Dropshipping API, Meta Graph API, Resend, OpenRouter, PayPal SDK
+- **DevOps**: Render (Web Service + DB), Docker, GitHub Actions
+
+---
+
+## ⚙️ Local Development Setup
 
 ### Prerequisites
 - Python 3.11+
-- PostgreSQL database (local or cloud)
 - Node.js 18+ (for Prisma CLI)
+- PostgreSQL database
 
-### 1. Clone and setup environment
+### Installation
 
-```bash
-cd python_admin
-cp .env.example .env
-# Edit .env with your actual credentials
-```
+1. **Clone and setup environment**:
+   ```bash
+   cd python_admin
+   cp .env.example .env
+   # Add your DB credentials and API keys
+   ```
 
-### 2. Install dependencies
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-pip install -r requirements.txt
-```
+3. **Generate ORM and Push Schema**:
+   ```bash
+   npx prisma generate --schema=schema_py.prisma
+   npx prisma db push --schema=schema_py.prisma
+   ```
 
-### 3. Generate Prisma client
-
-```bash
-prisma generate --schema=schema_py.prisma
-```
-
-### 4. Run database migrations
-
-```bash
-prisma db push --schema=schema_py.prisma
-```
-
-### 5. Start the development server
-
-```bash
-uvicorn main:app --reload --port 8000
-```
-
-The admin dashboard will be available at `http://localhost:8000/admin`
+4. **Start the API & Dashboard**:
+   ```bash
+   uvicorn main:app --reload --port 8000
+   ```
+   *Dashboard available at `http://localhost:8000/admin`*
 
 ---
 
-## Environment Variables
+## 📂 System Architecture & Project Structure
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `ADMIN_USERNAME` | ✅ | Admin login username |
-| `ADMIN_PASSWORD` | ✅ | Admin login password |
-| `JWT_SECRET` | ✅ (prod) | 64-char hex string for JWT signing |
-| `CJ_API_KEY` | ✅ | CJ Dropshipping API v2 key |
-| `OPENROUTER_API_KEY` | ✅ | OpenRouter API key for LLM |
-| `FB_PAGE_ACCESS_TOKEN` | ⚠️ | Facebook Page long-lived access token |
-| `FB_PAGE_ID` | ⚠️ | Facebook Page ID |
-| `IG_BUSINESS_ACCOUNT_ID` | ⚠️ | Instagram Business Account ID |
-| `RESEND_API_KEY` | ⚠️ | Resend API key for email sending |
-| `RESEND_FROM_EMAIL` | ⚠️ | Sender email (default: support@lumively.com) |
-| `ENVIRONMENT` | ❌ | `development` or `production` |
-| `ALLOWED_ORIGINS` | ❌ | JSON array of allowed CORS origins |
-
----
-
-## Domain DNS Verification (Resend)
-
-To send emails from `support@lumively.com`, you must verify the `lumively.com` domain in your Resend dashboard:
-
-1. Log in to [Resend Dashboard](https://resend.com/domains)
-2. Add `lumively.com` as a domain
-3. Add the required DNS records to your domain registrar:
-   - **MX Record**: Points to Resend's mail servers
-   - **SPF Record**: `v=spf1 include:amazonses.com ~all`
-   - **DKIM Record**: CNAME records provided by Resend
-4. Wait for DNS propagation (can take up to 48 hours)
-5. Verify in the Resend dashboard
-
----
-
-## Deployment (Render)
-
-### Using the Blueprint
-
-1. Push your code to GitHub
-2. Go to [Render Dashboard](https://dashboard.render.com/) → **Blueprints**
-3. Connect your repository
-4. Render will automatically detect `render.yaml` and create:
-   - `lumively-api` web service
-   - `lumively-db` PostgreSQL database
-5. Set all `sync: false` environment variables in the Render dashboard
-
-### Manual Deployment
-
-```bash
-# Build
-cd python_admin
-pip install -r requirements.txt
-prisma generate --schema=schema_py.prisma
-
-# Run (single worker for scheduler safety)
-gunicorn main:app -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
-```
-
-> **⚠️ Single Worker Required**: The APScheduler marketing loop MUST run on a single instance. Using multiple workers will cause duplicate social posts and email blasts.
-
----
-
-## API Endpoints
-
-### Products
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/products/{pid}` | Get product by PID |
-| PUT | `/api/v1/products/{pid}` | Update product |
-| DELETE | `/api/v1/products/{pid}` | Delete product |
-
-### CJ Dropshipping
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/cj/query_spu?spu=XXX` | Query CJ product (read-only) |
-| POST | `/api/v1/cj/import` | Import single product from CJ |
-| POST | `/api/v1/cj/bulk-import` | Bulk import from raw text |
-| POST | `/api/v1/cj/fulfill/{order_id}` | Trigger CJ fulfillment |
-| GET | `/api/v1/cj/order-status/{cj_order_id}` | Check CJ order status |
-
-### Marketing
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/marketing/posts` | List social posts |
-| POST | `/marketing/posts/manual` | Create manual social post |
-| PUT | `/marketing/posts/{id}` | Edit social post |
-| GET | `/marketing/emails` | List email campaigns |
-| POST | `/marketing/emails/manual` | Create manual email campaign |
-| PUT | `/marketing/emails/{id}` | Edit email campaign |
-
-### AI
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/gemini/rewrite` | AI product copy rewrite |
-| POST | `/api/v1/chat` | AI chatbot with tool calling |
-
-### System
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| GET | `/metrics` | Prometheus metrics |
-| GET | `/api/stats` | Platform statistics |
-
----
-
-## Project Structure
-
-```
+```text
 python_admin/
-├── main.py                    # FastAPI app with Prisma lifespan
-├── config.py                  # Pydantic settings (all env vars)
-├── auth.py                    # JWT authentication helpers
-├── schema_py.prisma           # Prisma schema (Python client)
-├── requirements.txt           # Python dependencies
-├── Dockerfile                 # Production Docker image
-├── .env.example               # Environment variable template
+├── main.py                    # FastAPI application & lifecycle events
+├── config.py                  # Pydantic environment validation
+├── schema_py.prisma           # Prisma DB Schema (Python)
 ├── routers/
-│   ├── admin.py               # Admin dashboard UI router
-│   ├── api.py                 # REST API + chatbot endpoint
-│   ├── auth.py                # Login/logout routes
-│   └── marketing.py           # Marketing dashboard + manual overrides
+│   ├── admin.py               # Admin Dashboard UI Controller
+│   ├── api.py                 # Core REST API & Binary Media Server
+│   └── marketing.py           # Campaign Management & Manual Overrides
 ├── services/
-│   ├── ai_service.py          # OpenRouter LLM client (marketing AI)
-│   ├── chat_agent.py          # AI chatbot with tool calling
-│   ├── cj_service.py          # CJ Dropshipping API client
-│   ├── email_service.py       # Resend email client
-│   ├── scheduler.py           # APScheduler bi-hourly loop
-│   └── social_service.py      # Meta Graph API (FB + IG)
-├── templates/
-│   ├── dashboard.html         # Admin dashboard page
-│   ├── login.html             # Login page
-│   └── marketing.html         # Marketing dashboard page
-└── uploads/                   # Manually uploaded media files
+│   ├── ai_service.py          # LLM integrations & prompt engineering
+│   ├── chat_agent.py          # NLP Tool-Calling Router
+│   ├── cj_service.py          # Dropshipping Supply Chain Client
+│   ├── email_service.py       # Resend Transactional Email Client
+│   ├── scheduler.py           # Background APScheduler Job Queue
+│   └── social_service.py      # Async Meta Graph API orchestrator
+└── templates/                 # Vue.js + Tailwind HTML Views
 ```
 
 ---
 
-## License
+## 🔒 Security & Performance
+- **Authentication**: JWT cookie-based session management with secure Bearer token API fallbacks.
+- **Monitoring**: Integrated `/health` endpoints and Prometheus `/metrics` for real-time observability.
+- **Resource Management**: File-based access token caching with automated refresh cycles to minimize outbound authentication requests.
 
-Proprietary — Lumively. All rights reserved.
+---
+*Built as a scalable, modern e-commerce infrastructure showcasing advanced API orchestration, generative AI integration, and autonomous background processing.*
