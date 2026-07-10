@@ -275,6 +275,9 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
 
     // 2. Add ALL Videos FIRST
     if (prod.uploadedVideo) {
+      if (prod.uploadedVideo.startsWith('/api')) {
+        prod.uploadedVideo = `https://lumively.onrender.com${prod.uploadedVideo}`;
+      }
       addImg(prod.uploadedVideo);
     }
     if (prod.productVideo) {
@@ -304,7 +307,7 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
   };
 
   const handleAddToCart = () => {
-    const isVideo = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com') || url.match(/\.(mp4|webm|ogg)$/i));
+    const isVideo = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com') || url.match(/\.(mp4|webm|ogg)$/i) || url === product.productVideo || url === product.uploadedVideo);
     const firstValidImage = productImages.find(img => !isVideo(img)) || product.productImage || '/mask.png';
     const finalProduct = { ...product, id: id, pid: id, name: title, price, originalPrice, qty, variant: selectedVariant, image: firstValidImage };
     onAddToCart(finalProduct);
@@ -391,7 +394,7 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
-              ) : imageSrc && (imageSrc.match(/\.(mp4|webm|ogg)$/i) || imageSrc === product.productVideo) ? (
+              ) : imageSrc && (imageSrc.match(/\.(mp4|webm|ogg)$/i) || imageSrc === product.productVideo || imageSrc === product.uploadedVideo) ? (
                 <video 
                   src={imageSrc} 
                   autoPlay 
@@ -455,7 +458,7 @@ export default function ProductDetail({ onAddToCart, onPaypalOpen, activeWavelen
                           <div className="w-0 h-0 border-t-4 border-t-transparent border-l-6 border-l-white border-b-4 border-b-transparent ml-1"></div>
                         </div>
                       </div>
-                    ) : img && (img.match(/\.(mp4|webm|ogg)$/i) || img === product.productVideo) ? (
+                    ) : img && (img.match(/\.(mp4|webm|ogg)$/i) || img === product.productVideo || img === product.uploadedVideo) ? (
                       <video 
                         src={img}
                         className="w-full h-full object-cover p-1 bg-white"
