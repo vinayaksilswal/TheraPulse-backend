@@ -145,8 +145,36 @@ async def get_media(media_id: str, request: Request):
         
     # Decode the Base64 string back to bytes for the response
     decoded_data = base64.b64decode(media_record.data)
+    file_size = len(decoded_data)
     
-    return Response(content=decoded_data, media_type=media_record.mimeType)
+    import re
+    range_header = request.headers.get("Range")
+    if range_header:
+        byte1, byte2 = 0, None
+        match = re.search(r"bytes=(\d+)-(\d*)", range_header)
+        if match:
+            g = match.groups()
+            byte1 = int(g[0])
+            if g[1]:
+                byte2 = int(g[1])
+        if byte2 is None or byte2 >= file_size:
+            byte2 = file_size - 1
+            
+        length = byte2 - byte1 + 1
+        data = decoded_data[byte1:byte2+1]
+        
+        headers = {
+            "Content-Range": f"bytes {byte1}-{byte2}/{file_size}",
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(length),
+        }
+        return Response(content=data, status_code=206, headers=headers, media_type=media_record.mimeType)
+    
+    headers = {
+        "Accept-Ranges": "bytes",
+        "Content-Length": str(file_size),
+    }
+    return Response(content=decoded_data, headers=headers, media_type=media_record.mimeType)
 
 # =============================================================================
 # Product Endpoints
