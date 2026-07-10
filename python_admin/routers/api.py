@@ -146,14 +146,21 @@ async def upload_media(request: Request, file: UploadFile = File(...)) -> Standa
         del encoded_data
         gc.collect()
         
-        return StandardResponse(success=True, data={"url": f"/api/v1/media/{media_record.id}"})
+        url_suffix = "?type=video.mp4" if mime_type.startswith("video/") else "?type=image.jpg"
+        
+        return StandardResponse(success=True, data={"url": f"/api/v1/media/{media_record.id}{url_suffix}"})
     except Exception as e:
         logger.error(f"Failed to upload media: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
 
-@router.get("/media/{media_id}")
+public_router = APIRouter(
+    prefix="/api/v1",
+    tags=["Public API"]
+)
+
+@public_router.get("/media/{media_id}")
 async def get_media(media_id: str, request: Request):
-    """Retrieve media from the database."""
+    """Retrieve media from the database (PUBLIC)."""
     prisma = request.app.state.prisma
     media_record = await prisma.media.find_unique(where={"id": media_id})
     if not media_record:

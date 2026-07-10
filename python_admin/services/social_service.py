@@ -55,9 +55,11 @@ CONTAINER_POLL_MAX_ATTEMPTS = 24  # max 2 minutes of polling (24 * 5s)
 # Helper — Detect video URLs
 # =============================================================================
 def _is_video(url: str) -> bool:
-    """Check if a URL points to a video file based on extension."""
+    """Check if a URL points to a video file based on extension or query param."""
     if not url:
         return False
+    if "type=video" in url.lower():
+        return True
     return url.lower().split("?")[0].endswith((".mp4", ".mov", ".webm", ".avi"))
 
 
@@ -131,6 +133,9 @@ async def post_to_facebook(
 
     if not media_urls:
         media_urls = []
+
+    # Ensure absolute URLs for Facebook API
+    media_urls = [f"https://lumively.com{url}" if url.startswith("/") else url for url in media_urls]
 
     video_urls = [url for url in media_urls if _is_video(url)]
     image_urls = [url for url in media_urls if not _is_video(url)]
@@ -339,6 +344,9 @@ async def post_to_instagram(
     if not media_urls:
         logger.warning("Instagram requires at least one media URL")
         return None
+
+    # Ensure absolute URLs for Instagram API
+    media_urls = [f"https://lumively.com{url}" if url.startswith("/") else url for url in media_urls]
 
     # Separate videos and images
     video_urls = [url for url in media_urls if _is_video(url)]
