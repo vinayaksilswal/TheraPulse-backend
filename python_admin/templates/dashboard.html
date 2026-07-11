@@ -304,8 +304,11 @@
                                 <input type="file" @change="uploadMedia" accept="video/*" class="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-led-purple focus:ring-1 focus:ring-led-purple bg-white">
                                 <span v-if="uploadingMedia" class="text-xs font-bold text-led-purple animate-pulse shrink-0">Uploading...</span>
                             </div>
-                            <div v-if="product.uploadedVideo" class="mt-2 text-xs text-emerald-600 font-bold break-all">
-                                ✓ Uploaded: {% raw %}{{ product.uploadedVideo }}{% endraw %}
+                            <div v-if="product.uploadedVideo" class="mt-2 space-y-2">
+                                <div class="text-xs text-emerald-600 font-bold break-all">
+                                    ✓ Uploaded: {% raw %}{{ product.uploadedVideo }}{% endraw %}
+                                </div>
+                                <video :src="product.uploadedVideo" controls class="w-full max-h-48 rounded-lg bg-black"></video>
                             </div>
                         </div>
 

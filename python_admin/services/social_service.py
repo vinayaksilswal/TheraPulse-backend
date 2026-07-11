@@ -78,6 +78,8 @@ async def _graph_post(url: str, data: dict[str, Any]) -> dict:
     """POST to the Meta Graph API with exponential backoff retry."""
     async with httpx.AsyncClient(timeout=META_TIMEOUT) as client:
         response = await client.post(url, data=data)
+        if response.is_error:
+            logger.error(f"Meta Graph API Error: {response.status_code} - {response.text}")
         response.raise_for_status()
         return response.json()
 

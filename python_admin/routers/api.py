@@ -147,8 +147,9 @@ async def upload_media(request: Request, file: UploadFile = File(...)) -> Standa
         gc.collect()
         
         url_suffix = "?type=video.mp4" if mime_type.startswith("video/") else "?type=image.jpg"
+        base_url = str(request.base_url).rstrip("/")
         
-        return StandardResponse(success=True, data={"url": f"/api/v1/media/{media_record.id}{url_suffix}"})
+        return StandardResponse(success=True, data={"url": f"{base_url}/api/v1/media/{media_record.id}{url_suffix}"})
     except Exception as e:
         logger.error(f"Failed to upload media: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}")
@@ -166,18 +167,15 @@ async def get_media(media_id: str, request: Request):
     if not media_record:
         raise HTTPException(status_code=404, detail="Media not found")
         
-    import base64
     import re
     from fastapi.responses import Response, StreamingResponse
     
-    data_str = media_record.data if isinstance(media_record.data, str) else media_record.data.decode('utf-8')
-    
-    padding = 0
-    if data_str.endswith("=="):
-        padding = 2
-    elif data_str.endswith("="):
-        padding = 1
-    file_size = (len(data_str) // 4) * 3 - padding
+    # Prisma Base64 type returns raw bytes when decoded
+    data_bytes = media_record.data.decode() if hasattr(media_record.data, 'decode') else media_record.data
+    if isinstance(data_bytes, str):
+        data_bytes = data_bytes.encode('utf-8')
+        
+    file_size = len(data_bytes)
     
     range_header = request.headers.get("Range")
     if range_header:
@@ -202,15 +200,7 @@ async def get_media(media_id: str, request: Request):
             
         length = byte2 - byte1 + 1
         
-        # Decode only the required base64 block
-        block_start = (byte1 // 3) * 4
-        block_end = ((byte2 // 3) + 1) * 4
-        
-        chunk_b64 = data_str[block_start:block_end]
-        chunk_bytes = base64.b64decode(chunk_b64)
-        
-        offset_start = byte1 % 3
-        data = chunk_bytes[offset_start:offset_start + length]
+        data = data_bytes[byte1:byte2 + 1]
         
         headers = {
             "Content-Range": f"bytes {byte1}-{byte2}/{file_size}",
@@ -224,12 +214,12 @@ async def get_media(media_id: str, request: Request):
         "Content-Length": str(file_size),
     }
     
-    def iter_decode():
-        chunk_b64_size = 4 * 1024 * 1024 # 4MB base64 -> 3MB bytes
-        for i in range(0, len(data_str), chunk_b64_size):
-            yield base64.b64decode(data_str[i:i+chunk_b64_size])
+    def iter_bytes():
+        chunk_size = 1024 * 1024 # 1MB chunks
+        for i in range(0, file_size, chunk_size):
+            yield data_bytes[i:i+chunk_size]
             
-    return StreamingResponse(iter_decode(), headers=headers, media_type=media_record.mimeType)
+    return StreamingResponse(iter_bytes(), headers=headers, media_type=media_record.mimeType)
 
 # =============================================================================
 # Product Endpoints
