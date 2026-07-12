@@ -175,8 +175,8 @@ async def edit_social_post(
 
     new_caption = caption
 
-    # Check if we are publishing a draft
-    publishing_draft = existing.status == "DRAFT" and status == "POSTED"
+    # Check if we are publishing a draft or retrying a failed post
+    publishing_draft = existing.status in ("DRAFT", "FAILED") and status == "POSTED"
     
     # Check if we are updating a live post's caption
     updating_live_caption = existing.status == "POSTED" and new_caption and existing.caption != new_caption
@@ -222,7 +222,14 @@ async def edit_social_post(
             except Exception as e:
                 errors.append(f"IG: {str(e)}")
 
-        is_success = fb_post_id is not None or ig_post_id is not None
+        if platform == "BOTH":
+            is_success = fb_post_id is not None and ig_post_id is not None
+        elif platform == "FACEBOOK":
+            is_success = fb_post_id is not None
+        elif platform == "INSTAGRAM":
+            is_success = ig_post_id is not None
+        else:
+            is_success = False
         
         # Override status if publishing failed
         update_data["status"] = "POSTED" if is_success else "FAILED"
@@ -247,7 +254,7 @@ async def edit_social_post(
     # Build update payload
     if caption is not None:
         update_data["caption"] = caption
-    if status is not None:
+    if status is not None and "status" not in update_data:
         update_data["status"] = status
     if scheduledAt:
         update_data["scheduledAt"] = datetime.fromisoformat(
@@ -366,7 +373,14 @@ async def create_manual_social_post(
         except Exception as e:
             errors.append(f"IG: {str(e)}")
 
-    is_success = fb_post_id is not None or ig_post_id is not None
+    if platform == "BOTH":
+        is_success = fb_post_id is not None and ig_post_id is not None
+    elif platform == "FACEBOOK":
+        is_success = fb_post_id is not None
+    elif platform == "INSTAGRAM":
+        is_success = ig_post_id is not None
+    else:
+        is_success = False
 
     # Update post record with results
     await prisma.socialpost.update(
@@ -408,7 +422,7 @@ async def edit_email_campaign(
     if not existing:
         raise HTTPException(status_code=404, detail="Campaign not found")
 
-    publishing_draft = existing.status == "DRAFT" and data.status == "SENT"
+    publishing_draft = existing.status in ("DRAFT", "FAILED") and data.status == "SENT"
 
     update_data: dict[str, Any] = {}
     if data.subject is not None:
