@@ -167,13 +167,20 @@ async def get_media(media_id: str, request: Request):
     if not media_record:
         raise HTTPException(status_code=404, detail="Media not found")
         
+    import base64
     import re
     from fastapi.responses import Response, StreamingResponse
     
-    # Prisma Base64 type returns raw bytes when decoded
-    data_bytes = media_record.data.decode() if hasattr(media_record.data, 'decode') else media_record.data
-    if isinstance(data_bytes, str):
-        data_bytes = data_bytes.encode('utf-8')
+    # Data is stored as base64-encoded ASCII string — decode back to raw bytes
+    raw_data = media_record.data
+    if isinstance(raw_data, (bytes, bytearray)):
+        raw_data = raw_data.decode('ascii')
+    
+    try:
+        data_bytes = base64.b64decode(raw_data)
+    except Exception:
+        # Fallback: data may already be raw bytes in some Prisma Bytes fields
+        data_bytes = raw_data.encode('latin-1') if isinstance(raw_data, str) else bytes(raw_data)
         
     file_size = len(data_bytes)
     
@@ -206,12 +213,14 @@ async def get_media(media_id: str, request: Request):
             "Content-Range": f"bytes {byte1}-{byte2}/{file_size}",
             "Accept-Ranges": "bytes",
             "Content-Length": str(length),
+            "Cache-Control": "public, max-age=86400",
         }
         return Response(content=data, status_code=206, headers=headers, media_type=media_record.mimeType)
     
     headers = {
         "Accept-Ranges": "bytes",
         "Content-Length": str(file_size),
+        "Cache-Control": "public, max-age=86400",
     }
     
     def iter_bytes():
@@ -607,3 +616,90 @@ async def chat_api(req: ChatRequest, request: Request) -> StandardResponse:
     prisma = request.app.state.prisma
     response_message = await chat_with_agent(req.messages, prisma)
     return StandardResponse(success=True, data=response_message)
+
+
+# =============================================================================
+# Social Media — Manual Trigger & Status Endpoints
+# =============================================================================
+@router.post("/social/trigger", response_model=StandardResponse)
+async def trigger_social_post(request: Request) -> StandardResponse:
+    """
+    Manually trigger one full marketing loop iteration immediately.
+    This selects the next product in the rotation, generates AI copy,
+    and posts to Facebook + Instagram (if auto-approve is ON).
+    """
+    import asyncio
+    from services.scheduler import execute_marketing_loop
+    logger.info("[MANUAL TRIGGER] Admin manually triggered marketing loop")
+    # Fire and forget — don't block the HTTP response
+    asyncio.create_task(execute_marketing_loop())
+    return StandardResponse(
+        success=True,
+        message="Marketing loop triggered. Check logs or /api/v1/social/recent-posts for results."
+    )
+
+
+@router.get("/social/recent-posts", response_model=StandardResponse)
+async def get_recent_social_posts(request: Request) -> StandardResponse:
+    """
+    Returns the 10 most recent social post records from the database,
+    including status (DRAFT / POSTED / FAILED), platform, caption snippet,
+    and post IDs.
+    """
+    prisma = request.app.state.prisma
+    try:
+        posts = await prisma.socialpost.find_many(
+            order={"createdAt": "desc"},
+            take=10,
+            include={"product": True},
+        )
+        data = [
+            {
+                "id": p.id,
+                "productName": p.product.productName if p.product else None,
+                "platform": p.platform,
+                "type": p.type,
+                "status": p.status,
+                "caption": (p.caption or "")[:120] + ("..." if len(p.caption or "") > 120 else ""),
+                "fbPostId": p.fbPostId,
+                "igPostId": p.igPostId,
+                "postedAt": p.postedAt.isoformat() if p.postedAt else None,
+                "scheduledAt": p.scheduledAt.isoformat() if p.scheduledAt else None,
+                "errorLog": p.errorLog,
+            }
+            for p in posts
+        ]
+        return StandardResponse(success=True, data=data)
+    except Exception as e:
+        logger.error(f"Failed to fetch recent social posts: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/social/scheduler-status", response_model=StandardResponse)
+async def get_scheduler_status(request: Request) -> StandardResponse:
+    """
+    Returns the next scheduled marketing loop run time and auto-approve status.
+    """
+    from datetime import timezone
+    prisma = request.app.state.prisma
+    scheduler = request.app.state.scheduler
+
+    next_run = None
+    try:
+        job = scheduler.get_job("marketing_loop")
+        if job and job.next_run_time:
+            next_run = job.next_run_time.isoformat()
+    except Exception:
+        pass
+
+    state = await prisma.marketingstate.find_unique(where={"id": "singleton"})
+    return StandardResponse(
+        success=True,
+        data={
+            "schedulerRunning": scheduler.running if scheduler else False,
+            "nextRunAt": next_run,
+            "autoApprove": state.autoApprove if state else False,
+            "lastSocialIdx": state.lastSocialIdx if state else 0,
+            "lastEmailIdx": state.lastEmailIdx if state else 0,
+        }
+    )

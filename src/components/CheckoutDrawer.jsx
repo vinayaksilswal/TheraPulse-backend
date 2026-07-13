@@ -7,6 +7,7 @@ import { validateShippingForm, validatePayPalAmount, sanitizeString } from '../u
 import { calculateCartTotal } from '../utils/pricing';
 import { createLogger } from '../utils/logger';
 import { getCookie } from '../utils/metaPixel';
+import { trackFunnelStep, FUNNEL_STEPS } from '../utils/telemetry';
 
 const logger = createLogger('Checkout');
 
@@ -26,9 +27,21 @@ export default function CheckoutDrawer({ isOpen, onClose, cart, clearCart }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [includeWarranty, setIncludeWarranty] = useState(false);
+  const WARRANTY_PRICE = 14.99;
 
-  // Cent-safe cart total
-  const total = useMemo(() => calculateCartTotal(cart), [cart]);
+  // Cent-safe cart total including warranty
+  const total = useMemo(() => {
+    let baseTotal = calculateCartTotal(cart);
+    if (includeWarranty) baseTotal += WARRANTY_PRICE;
+    return baseTotal;
+  }, [cart, includeWarranty]);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      trackFunnelStep(FUNNEL_STEPS.CHECKOUT_STARTED, { total });
+    }
+  }, [isOpen]); // only track when drawer opens
 
   /**
    * Validate all fields and update error state
@@ -72,6 +85,18 @@ export default function CheckoutDrawer({ isOpen, onClose, cart, clearCart }) {
       setFieldErrors((prev) => ({ ...prev, [name]: result.errors[name] }));
     }
   }, [formData]);
+
+  const handleEmailBlur = useCallback((e) => {
+    handleFieldBlur(e);
+    const email = e.target.value;
+    if (email && !validateShippingForm({email}).errors.email) {
+      fetch('/api/cart/abandoned', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, cart, includeWarranty })
+      }).catch(() => {}); // fire and forget
+    }
+  }, [cart, includeWarranty, handleFieldBlur]);
 
   const handlePaypalCheckoutSuccess = useCallback(async (details, savedOrder) => {
     if (isSubmitting) return; // Debounce double-click
@@ -138,7 +163,7 @@ export default function CheckoutDrawer({ isOpen, onClose, cart, clearCart }) {
         placeholder={placeholder}
         value={formData[name]}
         onChange={handleInputChange}
-        onBlur={handleFieldBlur}
+        onBlur={name === 'email' ? handleEmailBlur : handleFieldBlur}
         className={`w-full bg-white border rounded-xl px-4 py-3 text-xs text-obsidian placeholder-slate-400 focus:outline-none focus:ring-1 shadow-sm transition-all duration-200 ${
           fieldErrors[name]
             ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
@@ -214,6 +239,29 @@ export default function CheckoutDrawer({ isOpen, onClose, cart, clearCart }) {
                   </div>
                 </div>
 
+                {/* Warranty Order Bump */}
+                <div 
+                  className={`border-2 rounded-2xl p-4 cursor-pointer transition-all duration-300 ${includeWarranty ? 'border-emerald-500 bg-emerald-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'}`}
+                  onClick={() => setIncludeWarranty(!includeWarranty)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="pt-0.5">
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${includeWarranty ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}`}>
+                        {includeWarranty && <ShieldCheck className="h-3.5 w-3.5 text-white" />}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-obsidian flex items-center gap-2">
+                        Yes, Add 2-Year Extended Warranty
+                        <span className="text-xs font-mono text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200">+${WARRANTY_PRICE}</span>
+                      </h4>
+                      <p className="text-xs text-ash-gray mt-1 leading-relaxed">
+                        Protect your investment. Get a free replacement if your device malfunctions within 24 months. One-time fee.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Global Error */}
                 {submitError && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-medium flex items-start gap-2">
@@ -251,10 +299,11 @@ export default function CheckoutDrawer({ isOpen, onClose, cart, clearCart }) {
                         <PayPalButtons
                           style={{ layout: 'vertical', color: 'gold', shape: 'rect', label: 'paypal' }}
                           createOrder={async () => {
+                            trackFunnelStep(FUNNEL_STEPS.PAYMENT_INITIATED, { total, includeWarranty });
                             const res = await fetch('/api/paypal/create-order', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ cart })
+                              body: JSON.stringify({ cart, includeWarranty })
                             });
                             const contentType = res.headers.get('content-type');
                             if (contentType && contentType.includes('application/json')) {
@@ -278,7 +327,8 @@ export default function CheckoutDrawer({ isOpen, onClose, cart, clearCart }) {
                                     ...formData,
                                     fbp: getCookie('_fbp'),
                                     fbc: getCookie('_fbc')
-                                  }
+                                  },
+                                  includeWarranty
                                 })
                               });
                               const contentType = res.headers.get('content-type');
@@ -286,8 +336,11 @@ export default function CheckoutDrawer({ isOpen, onClose, cart, clearCart }) {
                                 throw new Error(`API server returned an HTML error page. The backend is likely not running.`);
                               }
                               const captureResult = await res.json();
-                              if (!res.ok || !captureResult.success) throw new Error(captureResult.error || 'Capture failed');
-                              
+                              if (!res.ok || !captureResult.success) {
+                                trackFunnelStep(FUNNEL_STEPS.PAYMENT_FAILED, { error: captureResult.error });
+                                throw new Error(captureResult.error || 'Capture failed');
+                              }
+                              trackFunnelStep(FUNNEL_STEPS.PAYMENT_SUCCESS, { total, includeWarranty });
                               await handlePaypalCheckoutSuccess(captureResult.captureData, captureResult.savedOrder);
                             } catch (err) {
                               logger.error('PayPal capture failed', { error: err.message });

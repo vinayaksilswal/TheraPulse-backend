@@ -294,7 +294,6 @@ export default function App() {
               </div>
             </footer>
 
-            {/* Global Cart Drawer */}
             <CartDrawer
               isOpen={cartOpen}
               onClose={() => setCartOpen(false)}
@@ -302,6 +301,7 @@ export default function App() {
               updateQty={updateQty}
               removeItem={removeItem}
               onCheckoutClick={openCheckout}
+              onAddToCart={onAddToCart}
             />
 
             {/* Global Secure Checkout */}

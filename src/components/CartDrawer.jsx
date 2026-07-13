@@ -2,8 +2,15 @@ import React from 'react';
 import { X, Trash2, ShieldCheck, ShoppingBag, Plus, Minus, Truck, Lock, Gift, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { trackEvent, generateEventId } from '../utils/metaPixel';
+import { trackFunnelStep, FUNNEL_STEPS } from '../utils/telemetry';
 
-export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeItem, onCheckoutClick }) {
+export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeItem, onCheckoutClick, onAddToCart }) {
+  const [upsellAdded, setUpsellAdded] = React.useState(false);
+  React.useEffect(() => {
+    if (isOpen) {
+      trackFunnelStep(FUNNEL_STEPS.CART_OPENED, { cart_count: cart.length });
+    }
+  }, [isOpen, cart.length]);
   if (!isOpen) return null;
 
   const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
@@ -115,6 +122,46 @@ export default function CartDrawer({ isOpen, onClose, cart, updateQty, removeIte
                 ))}
               </div>
             )}
+            
+            {/* In-Cart Upsell */}
+            {cart.length > 0 && !cart.find(item => item.id === 'upsell-serum') && !upsellAdded && (
+              <div className="mt-6 pt-6 border-t border-slate-200/60">
+                <h4 className="text-xs font-black uppercase tracking-wider text-obsidian mb-3 flex items-center gap-2">
+                  <Gift className="h-4 w-4 text-led-purple" /> Frequently Bought Together
+                </h4>
+                <div className="flex gap-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 rounded-2xl items-center justify-between">
+                  <div className="h-14 w-14 rounded-lg bg-white p-1 shrink-0 flex items-center justify-center border border-purple-100 shadow-sm">
+                    <div className="text-xl">🧴</div>
+                  </div>
+                  <div className="flex-grow text-left">
+                    <h4 className="text-xs font-bold text-obsidian leading-tight">LumiGlow Vitamin C Serum</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs font-mono text-led-red font-bold">$19.99</span>
+                      <span className="text-[10px] text-ash-gray line-through font-mono">$39.99</span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      trackFunnelStep(FUNNEL_STEPS.UPSELL_ACCEPTED, { item: 'upsell-serum', price: 19.99 });
+                      onAddToCart({
+                        id: 'upsell-serum',
+                        pid: 'upsell-serum',
+                        name: 'LumiGlow Vitamin C Serum',
+                        price: 19.99,
+                        originalPrice: 39.99,
+                        qty: 1,
+                        image: '/logo.png' // generic placeholder
+                      });
+                      setUpsellAdded(true);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-obsidian text-white text-[10px] font-bold uppercase tracking-wider hover:bg-black transition-colors shrink-0"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
+            
           </div>
 
           {/* Footer Subtotal & Checkout */}

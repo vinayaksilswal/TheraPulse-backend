@@ -27,7 +27,7 @@ async function getPayPalAccessToken() {
 
 router.post('/create-order', async (req, res) => {
   try {
-    const { cart } = req.body;
+    const { cart, includeWarranty } = req.body;
     
     // Validate cart and calculate total on backend to prevent tampering
     let totalCents = 0;
@@ -39,6 +39,11 @@ router.post('/create-order', async (req, res) => {
       const qty = parseInt(item.qty, 10) || 1;
       totalCents += Math.round(product.sellPrice * 100) * qty;
       dbItems.push({ ...product, qty });
+    }
+    
+    if (includeWarranty) {
+      totalCents += 1499; // $14.99 warranty
+      dbItems.push({ productName: "2-Year Extended Warranty", sellPrice: 14.99, qty: 1 });
     }
     
     const totalValue = (totalCents / 100).toFixed(2);
@@ -73,7 +78,7 @@ router.post('/create-order', async (req, res) => {
 
 router.post('/capture-order', async (req, res) => {
   try {
-    const { orderID, customerData: frontendCustomerData, cart } = req.body;
+    const { orderID, customerData: frontendCustomerData, cart, includeWarranty } = req.body;
     const accessToken = await getPayPalAccessToken();
     
     const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${orderID}/capture`, {
@@ -125,6 +130,18 @@ router.post('/capture-order', async (req, res) => {
             vid: item.vid || item.originalVid
           });
         }
+      }
+      
+      if (includeWarranty) {
+        totalCents += 1499;
+        // High margin, zero COGS
+        orderItemsData.push({
+          name: "2-Year Extended Warranty",
+          quantity: 1,
+          price: 14.99,
+          costPrice: 0,
+          vid: 'warranty-2yr' // mock vid
+        });
       }
       
       const revenue = totalCents / 100;

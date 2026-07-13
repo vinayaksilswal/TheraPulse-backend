@@ -19,3 +19,8 @@ there should be a side ai chat bot to get updates and from there ai should also 
 see the entire codebase understand the whole system and make it enterprice-grade and production readly for real word. all the features should work and will work autonumosly to do marketing and sell the stores product without any human interaction. also create a readme file for this platform name "Lumively" a ai powered e-commerce store with marketing automation(email and social media).
 
 there should be a option to manual run the 2 hour automation ai to post and email and see that it did and edit before posting or sending the mail in the preview
+
+
+
+see that everything should work perfectly the website for users to buy pay and fulfil by cj dropshipping and do the marketing in every 2 hours to post in instagram and facebook. it should be enterprice-grade and production for the real world users to buy from the website. after verifying all the things push it to github for production and start working for marketing and selling from the website.
+

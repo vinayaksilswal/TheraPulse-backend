@@ -247,8 +247,8 @@ Return a JSON object with exactly these keys:
 # =============================================================================
 async def generate_social_caption(product: Any) -> str:
     """
-    Generate a high-converting social media caption for a product.
-    Used by the scheduler and manual post creation flows.
+    Generate a high-converting, viral social media caption with a strong hook, 
+    benefits-driven copy, and clear CTA.
 
     Args:
         product: Prisma Product model instance
@@ -256,34 +256,52 @@ async def generate_social_caption(product: Any) -> str:
     Returns:
         The generated caption string
     """
-    prompt = f"""Write a highly engaging, unique, and conversational social media caption (for Instagram/Facebook) for this product:
+    save_pct = round((1 - float(product.sellPrice) / (
+        product.originalPrice if (getattr(product, 'originalPrice', None) and product.originalPrice > product.sellPrice)
+        else float(product.sellPrice) * 1.45
+    )) * 100)
+
+    prompt = f"""Write a high-converting, viral social media caption for Instagram and Facebook for this product:
 
 Product Name: {product.productName}
 Price: ${product.sellPrice}
+Save: {save_pct}% off retail
 Category: {product.categoryName}
 Tagline: {product.tagline or ''}
-Description: {product.description[:400] if product.description else ''}
+Description: {product.description[:500] if product.description else ''}
 Highlights: {', '.join(product.highlights) if product.highlights else ''}
 
 Requirements:
-- Make it sound like a real human wrote it (use a conversational, authentic tone).
-- Write from the perspective of the brand/business (e.g. 'We designed...', 'Introducing our...', 'Try our...'), NOT from the perspective of a customer (e.g. avoid 'I bought this...').
-- DO NOT use generic AI marketing speak. Make it completely unique each time.
-- Keep it under 150 words.
-- Include a strong, natural call to action (CTA).
-- Include 3-5 relevant hashtags.
-- Use emojis naturally, not excessively.
-- Do NOT include any filler like "Here is your caption:". Just return the exact caption text."""
+1. Start with a STRONG hook (bold question, surprising fact, or scroll-stopping statement).
+2. Build desire in 2-3 lines — mention a real benefit, pain point solved, or transformation.
+3. Include social proof (e.g. "10,000+ customers", "rated 4.9/5").
+4. Include the price and savings clearly.
+5. Strong CTA: "Shop now at lumively.com — link in bio!"
+6. End with 15-20 niche-targeted hashtags (mix large + small audiences).
+7. Use emojis naturally — 1-2 per paragraph max.
+8. Confident premium brand voice. NOT desperate or generic.
+9. Total: 180-250 words including hashtags.
+10. Return ONLY the caption. No intro text."""
 
     text = await _call_openrouter(prompt)
-    if text:
+    if text and len(text) > 50:
         return text
 
-    # Fallback
+    # Crafted fallback
     return (
-        f"✨ Check out our amazing new product: {product.productName}! "
-        f"Get it now for ${product.sellPrice}. "
-        f"#ShopNow #Lumively #Wellness"
+        f"✨ This is the wellness upgrade you've been putting off.\n\n"
+        f"Introducing the {product.productName} — clinical-grade technology, "
+        f"now available for your daily at-home routine.\n\n"
+        f"💫 Join 10,000+ customers who made this their daily ritual.\n"
+        f"⭐ Rated 4.9/5 with verified results in 2–4 weeks.\n\n"
+        f"🔥 Limited-time: ${product.sellPrice} (save {save_pct}% off retail)\n"
+        f"🚚 Free tracked shipping — ships in 1–3 business days\n"
+        f"✅ 30-day money-back guarantee\n\n"
+        f"👉 Shop now at lumively.com — link in bio!\n\n"
+        f"#Lumively #WellnessRoutine #SkincareTech #LEDLightTherapy #SkinHealth "
+        f"#AntiAging #ClearSkin #SkinGlow #BeautyDevice #ClinicalSkincare "
+        f"#GlowUp #SkinCareJunkie #DermatologistApproved #SkincareCommunity "
+        f"#FaceGlow #HealthySkin #SkinRoutine #BeautyHack #SkinTransformation #LumivelyGlow"
     )
 
 

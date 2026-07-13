@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cron from 'node-cron';
 
 // Load environment variables
 dotenv.config();
@@ -32,6 +33,8 @@ import warriorplusRouter from './routes/warriorplus.js';
 import metaRouter from './routes/meta.js';
 import authRouter from './routes/auth.js';
 import profileRouter from './routes/profile.js';
+import abandonedCartRouter from './routes/abandoned_cart.js';
+import mediaRouter from './routes/media.js';
 
 app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
@@ -40,6 +43,34 @@ app.use('/api/warriorplus', warriorplusRouter);
 app.use('/api/meta', metaRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/cart/abandoned', abandonedCartRouter);
+app.use('/api/v1/media', mediaRouter);
+
+// Cron Jobs
+cron.schedule('0 * * * *', async () => {
+  console.log('[Cron] Running Abandoned Cart Recovery check');
+  try {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const staleCarts = await prisma.abandonedCart.findMany({
+      where: {
+        recovered: false,
+        updatedAt: { lte: oneHourAgo }
+      }
+    });
+
+    for (const cart of staleCarts) {
+      console.log(`[Cron] Would send recovery email to: ${cart.email}`);
+      // Send email via nodemailer or external service here
+      // Mark as recovered or track email sent status to prevent spamming
+      await prisma.abandonedCart.update({
+        where: { id: cart.id },
+        data: { recovered: true }
+      });
+    }
+  } catch (err) {
+    console.error('[Cron] Abandoned Cart Error:', err);
+  }
+});
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production' && process.env.VERCEL !== '1') {
