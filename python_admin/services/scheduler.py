@@ -352,6 +352,19 @@ async def execute_marketing_loop() -> None:
 
 
 # =============================================================================
+# Database Keep-Alive
+# =============================================================================
+async def keep_alive_db() -> None:
+    """Ping the database to keep the connection alive (prevents idle timeouts)."""
+    global _prisma
+    if _prisma and _prisma.is_connected():
+        try:
+            await _prisma.query_raw("SELECT 1")
+        except Exception as e:
+            logger.warning(f"[KEEP ALIVE] Database ping failed ({e})")
+
+
+# =============================================================================
 # Scheduler Factory — Creates and configures the APScheduler instance
 # =============================================================================
 def create_scheduler(prisma: Prisma) -> AsyncIOScheduler:
@@ -385,6 +398,16 @@ def create_scheduler(prisma: Prisma) -> AsyncIOScheduler:
     logger.info(
         "Scheduler configured: marketing loop every 2 hours "
     )
+
+    # Add a keep-alive job every 3 minutes to prevent the DB connection from dropping
+    scheduler.add_job(
+        keep_alive_db,
+        trigger=IntervalTrigger(minutes=3),
+        id="db_keep_alive",
+        name="Database Keep-Alive Ping",
+        replace_existing=True,
+    )
+
     return scheduler
 
 

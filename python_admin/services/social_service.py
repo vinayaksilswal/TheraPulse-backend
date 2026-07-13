@@ -80,6 +80,14 @@ async def _graph_post(url: str, data: dict[str, Any]) -> dict:
         response = await client.post(url, data=data)
         if response.is_error:
             logger.error(f"Meta Graph API Error: {response.status_code} - {response.text}")
+            try:
+                error_code = response.json().get("error", {}).get("code")
+                if error_code == 190:
+                    raise ValueError(f"Meta Graph API OAuth Error: {response.text}")
+            except ValueError:
+                raise
+            except Exception:
+                pass
         response.raise_for_status()
         return response.json()
 
