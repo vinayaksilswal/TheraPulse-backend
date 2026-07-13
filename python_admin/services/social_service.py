@@ -124,17 +124,17 @@ async def post_to_facebook(
     """
     Post content to the Facebook Page.
 
-    Handles three media types:
-    - Video: POST /{page-id}/videos with file_url
-    - Single image: POST /{page-id}/photos with image URL
-    - Multi-image carousel: Upload unpublished photos, then POST /{page-id}/feed
+    Enterprise Logic:
+    - Videos: Posted individually to /{page-id}/videos (Native Video/Reels).
+    - Images: Grouped into a single multi-photo feed post (or single photo post).
+    - Returns a comma-separated list of all successful post IDs.
 
     Args:
         message: The post caption/message text
         media_urls: Optional list of media URLs (images and/or videos)
 
     Returns:
-        The Facebook post ID string, or None on failure
+        The Facebook post ID string (comma-separated if multiple), or None on failure
     """
     access_token, page_id = _get_fb_credentials()
     if not access_token or not page_id:
@@ -150,26 +150,29 @@ async def post_to_facebook(
     video_urls = [url for url in media_urls if _is_video(url)]
     image_urls = [url for url in media_urls if not _is_video(url)]
 
-    # --- Priority 1: Multi-media (Videos and Images) ---
-    if len(media_urls) > 1:
+    post_ids = []
+
+    # --- 1. Post Each Video Separately ---
+    for vid_url in video_urls:
+        url = f"{GRAPH_BASE_URL}/{page_id}/videos"
+        payload = {
+            "access_token": access_token,
+            "description": message,
+            "file_url": vid_url,
+        }
+        try:
+            result = await _graph_post(url, payload)
+            post_id = result.get("id")
+            if post_id:
+                logger.info(f"✓ Facebook video posted: {post_id}")
+                post_ids.append(post_id)
+        except Exception as e:
+            logger.error(f"Facebook video post failed: {e}")
+
+    # --- 2. Post Images ---
+    if len(image_urls) > 1:
+        # Multi-image carousel-style post (upload unpublished, then combine)
         attached_media: list[dict[str, str]] = []
-
-        # Upload each video as unpublished
-        for vid_url in video_urls[:5]:
-            vid_payload = {
-                "access_token": access_token,
-                "file_url": vid_url,
-                "published": "false",
-            }
-            try:
-                res = await _graph_post(f"{GRAPH_BASE_URL}/{page_id}/videos", vid_payload)
-                media_id = res.get("id")
-                if media_id:
-                    attached_media.append({"media_fbid": media_id})
-            except Exception as e:
-                logger.warning(f"Failed to upload unpublished FB video: {e}")
-
-        # Upload each image as unpublished
         for img_url in image_urls[:10]:
             photo_payload = {
                 "access_token": access_token,
@@ -184,46 +187,24 @@ async def post_to_facebook(
             except Exception as e:
                 logger.warning(f"Failed to upload unpublished FB photo: {e}")
 
-        if not attached_media:
-            logger.error("No media uploaded for Facebook combined post")
-            return None
+        if attached_media:
+            import json as json_lib
+            feed_payload = {
+                "access_token": access_token,
+                "message": message,
+                "attached_media": json_lib.dumps(attached_media),
+            }
+            try:
+                result = await _graph_post(f"{GRAPH_BASE_URL}/{page_id}/feed", feed_payload)
+                post_id = result.get("id")
+                if post_id:
+                    logger.info(f"✓ Facebook multi-photo post created: {post_id}")
+                    post_ids.append(post_id)
+            except Exception as e:
+                logger.error(f"Facebook multi-photo post failed: {e}")
 
-        # Create the combined feed post
-        import json as json_lib
-        feed_payload = {
-            "access_token": access_token,
-            "message": message,
-            "attached_media": json_lib.dumps(attached_media),
-        }
-        try:
-            result = await _graph_post(f"{GRAPH_BASE_URL}/{page_id}/feed", feed_payload)
-            post_id = result.get("id")
-            logger.info(f"✓ Facebook combined post created: {post_id}")
-            return post_id
-        except Exception as e:
-            logger.error(f"Facebook combined post failed: {e}. Falling back to standard posts.")
-            # If combined post fails, fallback is to do nothing right now (or handle it via standard)
-            return None
-
-    # --- Priority 2: Single Video ---
-    elif video_urls:
-        url = f"{GRAPH_BASE_URL}/{page_id}/videos"
-        payload = {
-            "access_token": access_token,
-            "description": message,
-            "file_url": video_urls[0],
-        }
-        try:
-            result = await _graph_post(url, payload)
-            post_id = result.get("id")
-            logger.info(f"✓ Facebook video posted: {post_id}")
-            return post_id
-        except Exception as e:
-            logger.error(f"Facebook video post failed: {e}")
-            return None
-
-    # --- Priority 3: Single Image ---
-    elif image_urls:
+    elif len(image_urls) == 1:
+        # Single image
         url = f"{GRAPH_BASE_URL}/{page_id}/photos"
         payload = {
             "access_token": access_token,
@@ -233,14 +214,14 @@ async def post_to_facebook(
         try:
             result = await _graph_post(url, payload)
             post_id = result.get("post_id") or result.get("id")
-            logger.info(f"✓ Facebook image posted: {post_id}")
-            return post_id
+            if post_id:
+                logger.info(f"✓ Facebook single image posted: {post_id}")
+                post_ids.append(post_id)
         except Exception as e:
             logger.error(f"Facebook image post failed: {e}")
-            return None
 
-    # --- Priority 4: Text only ---
-    else:
+    # --- 3. Text only (if no media was provided) ---
+    if not video_urls and not image_urls:
         url = f"{GRAPH_BASE_URL}/{page_id}/feed"
         payload = {
             "access_token": access_token,
@@ -249,11 +230,15 @@ async def post_to_facebook(
         try:
             result = await _graph_post(url, payload)
             post_id = result.get("id")
-            logger.info(f"✓ Facebook text posted: {post_id}")
-            return post_id
+            if post_id:
+                logger.info(f"✓ Facebook text posted: {post_id}")
+                post_ids.append(post_id)
         except Exception as e:
             logger.error(f"Facebook text post failed: {e}")
-            return None
+
+    if not post_ids:
+        return None
+    return ",".join(post_ids)
 
 
 # =============================================================================
